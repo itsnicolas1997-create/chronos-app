@@ -18,6 +18,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Lucide Icons para iconos ultra-limpios -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- jsPDF + AutoTable para exportar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- html2canvas para exportar imagen -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -617,9 +622,20 @@
                         <h2 class="text-xl font-bold text-white">Resumen de Actividad</h2>
                         <p class="text-xs text-gray-400 mt-1">Seguimiento de lo que hiciste y lo que quedó pendiente.</p>
                     </div>
-                    <button onclick="sendManualSummary()" class="flex items-center gap-2 bg-brand-card border border-brand-border hover:border-brand-green/40 text-gray-300 hover:text-white text-xs font-semibold py-2.5 px-4 rounded-xl transition-all-custom self-start sm:self-center">
-                        <i data-lucide="bell" class="w-4 h-4"></i> Enviar resumen por notificación
-                    </button>
+                    <div class="flex flex-wrap gap-2 self-start sm:self-center">
+                        <button onclick="sendManualSummary()" class="flex items-center gap-2 bg-brand-card border border-brand-border hover:border-brand-green/40 text-gray-300 hover:text-white text-xs font-semibold py-2.5 px-3 rounded-xl transition-all-custom">
+                            <i data-lucide="bell" class="w-4 h-4"></i> Notificación
+                        </button>
+                        <button onclick="exportToExcel()" class="flex items-center gap-2 bg-brand-card border border-brand-border hover:border-emerald-500/40 text-gray-300 hover:text-emerald-400 text-xs font-semibold py-2.5 px-3 rounded-xl transition-all-custom">
+                            <i data-lucide="table" class="w-4 h-4"></i> Excel
+                        </button>
+                        <button onclick="exportToPDF()" class="flex items-center gap-2 bg-brand-card border border-brand-border hover:border-rose-500/40 text-gray-300 hover:text-rose-400 text-xs font-semibold py-2.5 px-3 rounded-xl transition-all-custom">
+                            <i data-lucide="file-text" class="w-4 h-4"></i> PDF
+                        </button>
+                        <button onclick="exportToImage()" class="flex items-center gap-2 bg-brand-card border border-brand-border hover:border-sky-500/40 text-gray-300 hover:text-sky-400 text-xs font-semibold py-2.5 px-3 rounded-xl transition-all-custom">
+                            <i data-lucide="image" class="w-4 h-4"></i> Imagen
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Tabs de período -->
@@ -2268,6 +2284,153 @@
             }
 
             safeCreateIcons();
+        }
+
+        // ── EXPORTACIONES ────────────────────────────────────────────────
+
+        function getExportData() {
+            const period = activeResumenPeriod;
+            const names = { day: 'Hoy', week: 'Esta Semana', month: 'Este Mes' };
+            const periodTasks = tasks.filter(t => t.period === period);
+            const completed = periodTasks.filter(t => t.completed);
+            const pending = periodTasks.filter(t => !t.completed);
+            const pct = periodTasks.length > 0 ? Math.round((completed.length / periodTasks.length) * 100) : 0;
+            const fecha = new Date().toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+            return { period, periodName: names[period], periodTasks, completed, pending, pct, fecha };
+        }
+
+        function exportToExcel() {
+            const { periodName, periodTasks, completed, pending, pct, fecha } = getExportData();
+            const priorityLabel = p => p === 'muy-importante' ? 'Crítico' : p === 'importante' ? 'Importante' : 'Casual';
+
+            const rows = [
+                ['RESUMEN CREATIVA — ' + periodName],
+                ['Fecha:', fecha],
+                [''],
+                ['ESTADÍSTICAS'],
+                ['Total tareas', periodTasks.length],
+                ['Completadas', completed.length],
+                ['Pendientes', pending.length],
+                ['Progreso', pct + '%'],
+                [''],
+                ['TAREA', 'ESTADO', 'PRIORIDAD', 'HORARIO LÍMITE'],
+                ...periodTasks.map(t => [
+                    t.title,
+                    t.completed ? 'Completada ✓' : 'Pendiente ⏳',
+                    priorityLabel(t.priority),
+                    t.deadline_time || '-'
+                ])
+            ];
+
+            const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `resumen-creativa-${activeResumenPeriod}-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Excel descargado correctamente');
+        }
+
+        async function exportToPDF() {
+            if (!window.jspdf) { showToast('Cargando PDF...'); return; }
+            const { jsPDF } = window.jspdf;
+            const { periodName, periodTasks, completed, pending, pct, fecha } = getExportData();
+            const priorityLabel = p => p === 'muy-importante' ? 'Crítico' : p === 'importante' ? 'Importante' : 'Casual';
+
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+            // Header verde
+            doc.setFillColor(16, 185, 129);
+            doc.rect(0, 0, 210, 30, 'F');
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('CREATIVA — Resumen de Actividad', 14, 12);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Período: ${periodName}  |  ${fecha}`, 14, 22);
+
+            // Stats boxes
+            doc.setTextColor(30, 30, 30);
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            const statsY = 40;
+            [
+                { label: 'Completadas', value: completed.length, color: [16, 185, 129] },
+                { label: 'Pendientes', value: pending.length, color: [244, 63, 94] },
+                { label: 'Progreso', value: pct + '%', color: pct >= 80 ? [16, 185, 129] : pct >= 50 ? [245, 158, 11] : [244, 63, 94] }
+            ].forEach((s, i) => {
+                const x = 14 + i * 64;
+                doc.setDrawColor(...s.color);
+                doc.setLineWidth(0.5);
+                doc.roundedRect(x, statsY, 58, 20, 3, 3, 'S');
+                doc.setTextColor(...s.color);
+                doc.setFontSize(18);
+                doc.text(String(s.value), x + 29, statsY + 12, { align: 'center' });
+                doc.setTextColor(100, 100, 100);
+                doc.setFontSize(8);
+                doc.setFont(undefined, 'normal');
+                doc.text(s.label, x + 29, statsY + 18, { align: 'center' });
+            });
+
+            // Tabla de tareas
+            doc.autoTable({
+                startY: statsY + 28,
+                head: [['Tarea', 'Estado', 'Prioridad', 'Horario']],
+                body: periodTasks.map(t => [
+                    t.title,
+                    t.completed ? '✓ Completada' : '⏳ Pendiente',
+                    priorityLabel(t.priority),
+                    t.deadline_time || '-'
+                ]),
+                headStyles: { fillColor: [16, 185, 129], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 9 },
+                bodyStyles: { fontSize: 8, textColor: [40, 40, 40] },
+                alternateRowStyles: { fillColor: [245, 250, 247] },
+                didParseCell: (data) => {
+                    if (data.section === 'body' && data.column.index === 1) {
+                        data.cell.styles.textColor = data.cell.raw.includes('✓') ? [16, 185, 129] : [244, 63, 94];
+                    }
+                },
+                margin: { left: 14, right: 14 }
+            });
+
+            // Footer
+            const pageH = doc.internal.pageSize.height;
+            doc.setFontSize(7);
+            doc.setTextColor(150, 150, 150);
+            doc.text(`Generado por Creativa App — ${new Date().toLocaleString('es-ES')}`, 14, pageH - 8);
+
+            doc.save(`resumen-creativa-${activeResumenPeriod}-${new Date().toISOString().split('T')[0]}.pdf`);
+            showToast('PDF descargado correctamente');
+        }
+
+        async function exportToImage() {
+            if (!window.html2canvas) { showToast('Cargando...'); return; }
+            const el = document.getElementById('view-resumen');
+            showToast('Generando imagen...');
+            try {
+                const canvas = await html2canvas(el, {
+                    backgroundColor: '#11171E',
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                });
+                const url = canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `resumen-creativa-${activeResumenPeriod}-${new Date().toISOString().split('T')[0]}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showToast('Imagen descargada correctamente');
+            } catch(e) {
+                showToast('Error al generar imagen');
+                console.error(e);
+            }
         }
 
         function carryOverTasks() {
