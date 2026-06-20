@@ -294,6 +294,11 @@
                     <p id="live-date" class="text-xs text-gray-400 font-medium"></p>
                     <p id="live-time" class="text-sm font-bold text-brand-green font-mono"></p>
                 </div>
+                <!-- Botón Nube siempre visible en el header -->
+                <button onclick="manualSync()" title="Sincronizar con la nube" class="relative flex items-center gap-1.5 text-xs border border-brand-border hover:border-brand-green/50 text-gray-400 hover:text-brand-green rounded-lg py-2 px-3 transition-all-custom">
+                    <i data-lucide="cloud" class="w-4 h-4"></i>
+                    <span id="header-sync-dot" class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-gray-500 border border-brand-dark"></span>
+                </button>
                 <!-- Botón de acción rápida -->
                 <button onclick="openModal('add-project-modal')" class="bg-brand-green hover:bg-brand-green-hover text-black font-semibold text-xs py-2 px-3.5 rounded-lg flex items-center gap-1.5 transition-all-custom hover:shadow-glow">
                     <i data-lucide="plus" class="w-4 h-4 stroke-[3px]"></i> Nuevo Proyecto
@@ -2119,7 +2124,7 @@
         function setSyncStatus(status, message) {
             const indicator = document.getElementById('sync-indicator');
             const text = document.getElementById('sync-text');
-            if (!indicator || !text) return;
+            const headerDot = document.getElementById('header-sync-dot');
             const states = {
                 syncing:       { dot: 'bg-amber-400 animate-pulse', label: 'Sincronizando...', color: 'text-amber-400' },
                 synced:        { dot: 'bg-brand-green',             label: '✓ Sincronizado',   color: 'text-brand-green' },
@@ -2128,9 +2133,9 @@
                 idle:          { dot: 'bg-gray-500',                label: 'Local',            color: 'text-gray-500' }
             };
             const s = states[status] || states.idle;
-            indicator.className = `w-2 h-2 rounded-full flex-shrink-0 ${s.dot}`;
-            text.className = `text-[10px] ${s.color}`;
-            text.textContent = s.label;
+            if (indicator) { indicator.className = `w-2 h-2 rounded-full flex-shrink-0 ${s.dot}`; }
+            if (text)      { text.className = `text-[10px] ${s.color}`; text.textContent = s.label; }
+            if (headerDot) { headerDot.className = `absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border border-brand-dark ${s.dot}`; }
         }
 
         async function gistRequest(method, url, token, body) {
