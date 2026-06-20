@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-[#090D10] text-gray-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chronos - Gestión de Tiempos y Proyectos Premium</title>
+
+    <!-- Configuración para App Móvil / PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#090D10">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/090d10/10b981?text=C">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons para iconos ultra-limpios -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            black: '#090D10',
+                            dark: '#11171E',
+                            card: '#161F28',
+                            border: '#1E293B',
+                            green: '#10B981', // Emerald 500
+                            'green-hover': '#059669', // Emerald 600
+                            'green-glow': '#34D399', // Emerald 400
+                        }
+                    },
+                    boxShadow: {
+                        'glow': '0 0 15px -3px rgba(16, 185, 129, 0.3)',
+                        'glow-lg': '0 0 25px -5px rgba(16, 185, 129, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Personalización de barra de scroll estilo oscuro */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090D10;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10B981;
+        }
+        /* Transiciones suaves */
+        .transition-all-custom {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="h-full font-sans antialiased overflow-hidden flex flex-col md:flex-row bg-[#090D10]">
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="fixed inset-0 z-[200] bg-[#090D10] flex items-center justify-center p-4">
+        <div class="bg-[#161F28] border border-[#1E293B] rounded-2xl p-8 w-full max-w-sm shadow-2xl">
+            <div class="flex items-center gap-3 mb-8 justify-center">
+                <div class="p-2 bg-[#10B981]/10 rounded-lg border border-[#10B981]/30">
+                    <i data-lucide="clock" class="text-[#10B981] h-7 w-7"></i>
+                </div>
+                <span class="text-2xl font-extrabold tracking-wider text-white">CHRONOS<span class="text-[#10B981]">.</span></span>
+            </div>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Usuario</label>
+                    <input type="text" id="login-user" required autocomplete="username"
+                        class="w-full bg-[#090D10] border border-[#1E293B] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#10B981] transition-all"
+                        placeholder="tu usuario">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Contraseña</label>
+                    <input type="password" id="login-pass" required autocomplete="current-password"
+                        class="w-full bg-[#090D10] border border-[#1E293B] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#10B981] transition-all"
+                        placeholder="••••••••">
+                </div>
+                <div id="login-error" class="hidden text-xs text-rose-400 text-center py-1 bg-rose-500/10 rounded-lg">
+                    Usuario o contraseña incorrectos
+                </div>
+                <button type="submit" class="w-full bg-[#10B981] hover:bg-[#059669] text-black font-bold py-3 rounded-xl transition-all mt-2">
+                    Ingresar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CAMBIAR CREDENCIALES -->
+    <div id="change-credentials-modal" class="fixed inset-0 z-[150] overflow-y-auto hidden">
+        <div class="flex min-h-screen items-center justify-center px-4">
+            <div class="fixed inset-0 bg-black/75 backdrop-blur-sm" onclick="closeModal('change-credentials-modal')"></div>
+            <div class="relative bg-[#161F28] border border-[#1E293B] rounded-2xl p-6 w-full max-w-sm shadow-2xl z-10">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i data-lucide="key" class="text-[#10B981] w-4 h-4"></i> Cambiar Credenciales
+                    </h3>
+                    <button onclick="closeModal('change-credentials-modal')" class="text-gray-400 hover:text-white">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <form onsubmit="saveNewCredentials(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Nuevo usuario</label>
+                        <input type="text" id="new-user" required
+                            class="w-full bg-[#090D10] border border-[#1E293B] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#10B981] transition-all"
+                            placeholder="nuevo usuario">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Nueva contraseña</label>
+                        <input type="password" id="new-pass" required
+                            class="w-full bg-[#090D10] border border-[#1E293B] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#10B981] transition-all"
+                            placeholder="nueva contraseña">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Confirmar contraseña</label>
+                        <input type="password" id="confirm-pass" required
+                            class="w-full bg-[#090D10] border border-[#1E293B] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#10B981] transition-all"
+                            placeholder="repetí la contraseña">
+                    </div>
+                    <div id="cred-error" class="hidden text-xs text-rose-400 text-center py-1 bg-rose-500/10 rounded-lg">
+                        Las contraseñas no coinciden
+                    </div>
+                    <div class="flex gap-3 pt-1">
+                        <button type="button" onclick="closeModal('change-credentials-modal')"
+                            class="flex-1 px-4 py-2.5 bg-[#090D10] border border-[#1E293B] text-gray-300 rounded-xl text-xs font-semibold hover:text-white transition-all">
+                            Cancelar
+                        </button>
+                        <button type="submit"
+                            class="flex-1 px-4 py-2.5 bg-[#10B981] hover:bg-[#059669] text-black rounded-xl text-xs font-bold transition-all">
+                            Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar móvil (Toggle) - Corregido para que no bloquee interacciones cuando está oculto -->
+    <div id="mobile-sidebar" class="fixed inset-0 z-50 flex md:hidden hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="toggleMobileSidebar()"></div>
+        <div class="relative flex w-full max-w-xs flex-1 flex-col bg-brand-dark border-r border-brand-border pt-5 pb-4">
+            <div class="absolute top-0 right-0 -mr-12 pt-2">
+                <button type="button" class="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-green" onclick="toggleMobileSidebar()">
+                    <i data-lucide="x" class="text-white h-6 w-6"></i>
+                </button>
+            </div>
+            <div class="flex flex-shrink-0 items-center px-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-brand-green/10 rounded-lg border border-brand-green/30">
+                        <i data-lucide="clock" class="text-brand-green h-6 w-6"></i>
+                    </div>
+                    <span class="text-xl font-extrabold tracking-wider text-white">CHRONOS<span class="text-brand-green">.</span></span>
+                </div>
+            </div>
+            <div class="mt-8 h-0 flex-1 overflow-y-auto">
+                <nav class="space-y-1 px-2">
+                    <button onclick="switchTab('dashboard')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="dashboard">
+                        <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i> Dashboard
+                    </button>
+                    <button onclick="switchTab('projects')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="projects">
+                        <i data-lucide="folder-kanban" class="mr-3 h-5 w-5"></i> Proyectos
+                    </button>
+                    <button onclick="switchTab('tasks')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="tasks">
+                        <i data-lucide="check-square" class="mr-3 h-5 w-5"></i> Tareas Temporales
+                    </button>
+                    <button onclick="switchTab('ideas')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="ideas">
+                        <i data-lucide="lightbulb" class="mr-3 h-5 w-5"></i> Banco de Ideas
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Escritorio -->
+    <aside class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-brand-dark border-r border-brand-border z-20">
+        <div class="flex flex-col flex-grow pt-6 pb-4 overflow-y-auto">
+            <div class="flex items-center flex-shrink-0 px-6 mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-brand-green/10 rounded-lg border border-brand-green/30">
+                        <i data-lucide="clock" class="text-brand-green h-6 w-6"></i>
+                    </div>
+                    <span class="text-xl font-extrabold tracking-wider text-white">CHRONOS<span class="text-brand-green">.</span></span>
+                </div>
+            </div>
+            <div class="flex-grow flex flex-col px-4">
+                <nav class="flex-1 space-y-1">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="dashboard">
+                        <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i> Dashboard
+                    </button>
+                    <button onclick="switchTab('projects')" id="nav-projects" class="nav-btn w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="projects">
+                        <i data-lucide="folder-kanban" class="mr-3 h-5 w-5"></i> Proyectos
+                    </button>
+                    <button onclick="switchTab('tasks')" id="nav-tasks" class="nav-btn w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="tasks">
+                        <i data-lucide="check-square" class="mr-3 h-5 w-5"></i> Tareas Temporales
+                    </button>
+                    <button onclick="switchTab('ideas')" id="nav-ideas" class="nav-btn w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="ideas">
+                        <i data-lucide="lightbulb" class="mr-3 h-5 w-5"></i> Banco de Ideas
+                    </button>
+                </nav>
+                <!-- Info de Perfil de Usuario -->
+                <div class="mt-auto border-t border-brand-border pt-4 space-y-2">
+                    <div class="flex items-center gap-3 px-2">
+                        <div class="h-9 w-9 rounded-full bg-brand-green/20 border border-brand-green text-brand-green flex items-center justify-center font-bold text-sm" id="sidebar-avatar">N</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-semibold text-white truncate" id="sidebar-username">nico</p>
+                            <p class="text-[10px] text-gray-400">Panel de Alto Rendimiento</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 px-2">
+                        <button onclick="openModal('change-credentials-modal')" class="flex-1 flex items-center justify-center gap-1 text-[10px] text-gray-400 hover:text-white border border-brand-border hover:border-brand-green/40 rounded-lg py-1.5 transition-all-custom">
+                            <i data-lucide="key" class="w-3 h-3"></i> Credenciales
+                        </button>
+                        <button onclick="logout()" class="flex-1 flex items-center justify-center gap-1 text-[10px] text-gray-400 hover:text-rose-400 border border-brand-border hover:border-rose-500/40 rounded-lg py-1.5 transition-all-custom">
+                            <i data-lucide="log-out" class="w-3 h-3"></i> Salir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Contenedor Principal de Vistas -->
+    <div class="md:pl-64 flex flex-col flex-1 w-full overflow-hidden">
+        <!-- Header Superior -->
+        <header class="bg-brand-dark/50 backdrop-blur-md border-b border-brand-border h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 flex-shrink-0 z-30">
+            <button onclick="toggleMobileSidebar()" class="md:hidden p-2 text-gray-400 hover:text-white focus:outline-none">
+                <i data-lucide="menu" class="h-6 w-6"></i>
+            </button>
+            <div class="flex items-center space-x-4">
+                <h1 id="page-title" class="text-lg sm:text-xl font-bold text-white tracking-tight">Dashboard General</h1>
+                <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-brand-green border border-brand-green/20 hidden sm:inline-block font-medium">Priorización Inteligente</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="text-right hidden md:block border-r border-brand-border pr-3">
+                    <p id="live-date" class="text-xs text-gray-400 font-medium"></p>
+                    <p id="live-time" class="text-sm font-bold text-brand-green font-mono"></p>
+                </div>
+                <!-- Botón de acción rápida -->
+                <button onclick="openModal('add-project-modal')" class="bg-brand-green hover:bg-brand-green-hover text-black font-semibold text-xs py-2 px-3.5 rounded-lg flex items-center gap-1.5 transition-all-custom hover:shadow-glow">
+                    <i data-lucide="plus" class="w-4 h-4 stroke-[3px]"></i> Nuevo Proyecto
+                </button>
+            </div>
+        </header>
+
+        <!-- Contenedor de Contenido Principal -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-8 relative">
+
+            <!-- Toast de Notificaciones -->
+            <div id="toast" class="fixed top-20 right-4 bg-brand-card border-l-4 border-brand-green text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 transform translate-x-[150%] transition-transform duration-300">
+                <i data-lucide="info" class="text-brand-green"></i>
+                <span id="toast-message" class="text-xs font-medium">Acción realizada con éxito</span>
+            </div>
+
+            <!-- Banner de notificaciones -->
+            <div id="notification-banner" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="bell" class="text-amber-400 w-4 h-4 flex-shrink-0"></i>
+                    <span class="text-xs text-amber-400">Activá las notificaciones para recibir alertas cuando tus tareas venzan</span>
+                </div>
+                <button onclick="requestNotifPermission()" class="text-xs bg-amber-500 hover:bg-amber-400 text-black font-bold px-3 py-1.5 rounded-lg flex-shrink-0">Activar</button>
+            </div>
+
+            <!-- VISTA: DASHBOARD -->
+            <div id="view-dashboard" class="view-panel space-y-6">
+                <!-- Tarjetas de Estadísticas (KPIs) con Prioridades de Medición -->
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border flex items-center justify-between shadow-sm hover:border-brand-green/30 transition-all-custom">
+                        <div>
+                            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Proyectos Activos</p>
+                            <h3 id="stat-active-projects" class="text-2xl font-bold text-white mt-1">0</h3>
+                            <span class="text-[10px] text-brand-green flex items-center gap-1 mt-1">
+                                <i data-lucide="folder-kanban" class="w-3 h-3"></i> En curso
+                            </span>
+                        </div>
+                        <div class="p-3 bg-brand-green/10 rounded-xl text-brand-green">
+                            <i data-lucide="folder-kanban" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border flex items-center justify-between shadow-sm hover:border-brand-green/30 transition-all-custom">
+                        <div>
+                            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">🔴 Muy Importantes</p>
+                            <h3 id="stat-critico-tasks" class="text-2xl font-bold text-rose-500 mt-1">0</h3>
+                            <span class="text-[10px] text-rose-400 flex items-center gap-1 mt-1">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> Acción requerida
+                            </span>
+                        </div>
+                        <div class="p-3 bg-rose-500/10 rounded-xl text-rose-500">
+                            <i data-lucide="alert-octagon" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border flex items-center justify-between shadow-sm hover:border-brand-green/30 transition-all-custom">
+                        <div>
+                            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">🟡 Importantes</p>
+                            <h3 id="stat-importante-tasks" class="text-2xl font-bold text-amber-500 mt-1">0</h3>
+                            <span class="text-[10px] text-amber-400 flex items-center gap-1 mt-1">
+                                <i data-lucide="play" class="w-3 h-3"></i> Prioridad Media
+                            </span>
+                        </div>
+                        <div class="p-3 bg-amber-500/10 rounded-xl text-amber-500">
+                            <i data-lucide="layers" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border flex items-center justify-between shadow-sm hover:border-brand-green/30 transition-all-custom">
+                        <div>
+                            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">🟢 Casual / Rutina</p>
+                            <h3 id="stat-casual-tasks" class="text-2xl font-bold text-sky-400 mt-1">0</h3>
+                            <span class="text-[10px] text-sky-400 flex items-center gap-1 mt-1">
+                                <i data-lucide="check" class="w-3 h-3"></i> Trabajo flexible
+                            </span>
+                        </div>
+                        <div class="p-3 bg-sky-500/10 rounded-xl text-sky-400">
+                            <i data-lucide="coffee" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloques Interactivos Principales -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <!-- Temporizador de Enfoque Profesional (Pomodoro) -->
+                    <div class="bg-brand-card p-6 rounded-2xl border border-brand-border lg:col-span-1 flex flex-col justify-between shadow-sm">
+                        <div>
+                            <div class="flex items-center justify-between mb-4 pb-2 border-b border-brand-border">
+                                <h3 class="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-brand-green animate-pulse"></span> Temporizador de Enfoque
+                                </h3>
+                                <span class="text-xs text-gray-400 font-mono" id="focus-status">Concentración</span>
+                            </div>
+
+                            <div class="flex flex-col items-center justify-center py-6">
+                                <span class="text-5xl font-extrabold tracking-widest text-white font-mono mb-2" id="timer-display">25:00</span>
+                                <p class="text-xs text-gray-400 text-center mb-6">Completa tus metas diarias usando intervalos de enfoque continuo.</p>
+
+                                <div class="flex items-center gap-3">
+                                    <button onclick="toggleTimer()" id="btn-timer-play" class="bg-brand-green hover:bg-brand-green-hover text-black font-bold text-xs py-2 px-5 rounded-xl transition-all-custom flex items-center gap-2 hover:shadow-glow">
+                                        <i data-lucide="play" class="w-4 h-4 fill-black"></i> Iniciar
+                                    </button>
+                                    <button onclick="resetTimer()" class="bg-brand-black hover:bg-brand-card text-white border border-brand-border font-medium text-xs py-2 px-4 rounded-xl transition-all-custom">
+                                        Reiniciar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-brand-border/40 text-center">
+                            <span class="text-[10px] text-gray-500">Intervalo recomendado: 25 min Enfoque / 5 min Descanso</span>
+                        </div>
+                    </div>
+
+                    <!-- Panel de Tareas Críticas del Día con Filtro de Importancia Incorporado -->
+                    <div class="bg-brand-card p-6 rounded-2xl border border-brand-border lg:col-span-2 flex flex-col justify-between shadow-sm">
+                        <div>
+                            <div class="flex items-center justify-between mb-4 pb-2 border-b border-brand-border">
+                                <h3 class="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-brand-green"></span> Plan de Tareas de Hoy
+                                </h3>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-gray-400">Distribución de Prioridades</span>
+                                </div>
+                            </div>
+
+                            <!-- Barra de medición visual del nivel de importancia de las tareas de hoy -->
+                            <div class="mb-4 bg-brand-black p-3 rounded-xl border border-brand-border/30">
+                                <div class="flex justify-between items-center text-[10px] text-gray-400 mb-1.5 font-medium">
+                                    <span>Nivel de Importancia de hoy:</span>
+                                    <span id="importance-distribution-text">0% Crítico | 0% Importante</span>
+                                </div>
+                                <div class="w-full flex h-2 rounded-full overflow-hidden bg-brand-card border border-brand-border/40">
+                                    <div id="bar-priority-high" class="bg-rose-500 h-full transition-all duration-300" style="width: 0%"></div>
+                                    <div id="bar-priority-medium" class="bg-amber-500 h-full transition-all duration-300" style="width: 0%"></div>
+                                    <div id="bar-priority-low" class="bg-sky-400 h-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div class="overflow-y-auto space-y-3 max-h-52 pr-1" id="dashboard-daily-tasks">
+                                <!-- Inyectado dinámicamente -->
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-brand-border/40">
+                            <!-- Input de tarea rápida con selección de importancia inmediata -->
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <input id="dashboard-quick-task-input" type="text" placeholder="Nueva tarea rápida para hoy..." class="flex-1 bg-brand-black border border-brand-border rounded-xl text-xs px-3.5 py-3 text-white focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green">
+
+                                <div class="flex gap-2">
+                                    <input type="time" id="dashboard-quick-time" class="bg-brand-black border border-brand-border rounded-xl text-xs px-2 py-3 text-white focus:outline-none focus:border-brand-green w-28" title="Hora límite">
+                                    <select id="dashboard-quick-priority" class="bg-brand-black border border-brand-border rounded-xl text-xs px-2.5 py-3 text-white focus:outline-none focus:border-brand-green">
+                                        <option value="muy-importante">🔴 Muy Importante</option>
+                                        <option value="importante" selected>🟡 Importante</option>
+                                        <option value="casual">🟢 Casual</option>
+                                    </select>
+                                    <button onclick="addDashboardQuickTask()" class="bg-brand-green hover:bg-brand-green-hover text-black p-3 rounded-xl transition-all-custom hover:shadow-glow flex items-center justify-center">
+                                        <i data-lucide="plus" class="w-4 h-4 stroke-[3px]"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Proyectos Destacados en Dashboard -->
+                <div class="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-brand-green"></span> Proyectos en Progreso Activo
+                        </h3>
+                        <button onclick="switchTab('projects')" class="text-xs text-brand-green hover:underline">Gestionar Todos</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="dashboard-projects-grid">
+                        <!-- Inyectado dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Resumen de Progreso -->
+                <div class="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-sm">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-brand-green"></span> Resumen de Progreso
+                        </h3>
+                        <button onclick="sendManualSummary()" class="text-xs text-brand-green hover:underline flex items-center gap-1">
+                            <i data-lucide="bell" class="w-3 h-3"></i> Notificar resumen del día
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="summary-cards"></div>
+                </div>
+            </div>
+
+            <!-- VISTA: PROYECTOS -->
+            <div id="view-projects" class="view-panel space-y-6 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Tablero de Proyectos</h2>
+                        <p class="text-xs text-gray-400 font-medium mt-1">Controla el progreso, objetivos, tareas e ideas de cada proyecto registrado.</p>
+                    </div>
+                    <button onclick="openModal('add-project-modal')" class="bg-brand-green hover:bg-brand-green-hover text-black font-semibold text-xs py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-all-custom hover:shadow-glow self-start sm:self-center">
+                        <i data-lucide="plus" class="w-4 h-4 stroke-[3px]"></i> Crear Nuevo Proyecto
+                    </button>
+                </div>
+
+                <!-- Grid de Tarjetas de Proyectos -->
+                <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Inyectado dinámicamente -->
+                </div>
+            </div>
+
+            <!-- VISTA: TAREAS TEMPORALES -->
+            <div id="view-tasks" class="view-panel space-y-6 hidden">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Agenda de Tareas Temporales</h2>
+                    <p class="text-xs text-gray-400 font-medium mt-1">Clasifica tus acciones estructurando el tiempo: del plan de hoy a tus metas del año.</p>
+                </div>
+
+                <!-- Filtros / Pestañas de Períodos Temporales -->
+                <div class="flex border-b border-brand-border overflow-x-auto">
+                    <button onclick="switchTaskPeriod('day')" class="task-period-tab border-b-2 border-transparent px-6 py-3.5 text-sm font-semibold text-gray-400 hover:text-white transition-all-custom whitespace-nowrap active-tab" data-period="day">
+                        <span class="flex items-center gap-2"><i data-lucide="sun" class="w-4 h-4"></i> Tareas del Día</span>
+                    </button>
+                    <button onclick="switchTaskPeriod('week')" class="task-period-tab border-b-2 border-transparent px-6 py-3.5 text-sm font-semibold text-gray-400 hover:text-white transition-all-custom whitespace-nowrap" data-period="week">
+                        <span class="flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4"></i> Plan Semanal</span>
+                    </button>
+                    <button onclick="switchTaskPeriod('month')" class="task-period-tab border-b-2 border-transparent px-6 py-3.5 text-sm font-semibold text-gray-400 hover:text-white transition-all-custom whitespace-nowrap" data-period="month">
+                        <span class="flex items-center gap-2"><i data-lucide="calendar-days" class="w-4 h-4"></i> Objetivos Mensuales</span>
+                    </button>
+                    <button onclick="switchTaskPeriod('year')" class="task-period-tab border-b-2 border-transparent px-6 py-3.5 text-sm font-semibold text-gray-400 hover:text-white transition-all-custom whitespace-nowrap" data-period="year">
+                        <span class="flex items-center gap-2"><i data-lucide="target" class="w-4 h-4"></i> Metas Anuales</span>
+                    </button>
+                </div>
+
+                <!-- Contenido de la Lista de Tareas -->
+                <div class="bg-brand-card rounded-2xl border border-brand-border p-6 space-y-6">
+                    <!-- Formulario Avanzado para agregar una nueva tarea con Nivel de Importancia -->
+                    <form id="task-form" onsubmit="addTask(event)" class="flex flex-col lg:flex-row gap-3">
+                        <div class="flex-1">
+                            <input type="text" id="task-title-input" placeholder="Escribe tu próxima tarea..." required class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all-custom">
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="w-full">
+                                <select id="task-project-select" class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                                    <option value="">Sin Proyecto</option>
+                                </select>
+                            </div>
+                            <div class="w-full">
+                                <select id="task-priority-select" class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                                    <option value="muy-importante">🔴 Muy Importante</option>
+                                    <option value="importante" selected>🟡 Importante</option>
+                                    <option value="casual">🟢 Casual / Rutina</option>
+                                </select>
+                            </div>
+                            <div class="w-full" id="task-time-wrapper">
+                                <input type="time" id="task-time-input" class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-green transition-all-custom" title="Hora límite (solo tareas del día)">
+                            </div>
+                        </div>
+                        <button type="submit" class="bg-brand-green hover:bg-brand-green-hover text-black font-semibold text-sm px-6 py-3 rounded-xl transition-all-custom hover:shadow-glow flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4 stroke-[3px]"></i> Añadir Tarea
+                        </button>
+                    </form>
+
+                    <!-- Barra de filtros dinámicos por nivel de importancia de tareas -->
+                    <div class="flex flex-wrap items-center gap-2 pb-2 border-b border-brand-border/40">
+                        <span class="text-xs text-gray-400 font-medium">Filtrar por importancia:</span>
+                        <button onclick="filterTasksByPriority('all')" id="filter-btn-all" class="text-[11px] px-2.5 py-1 rounded-full bg-brand-green text-black font-bold transition-all-custom">
+                            Todas
+                        </button>
+                        <button onclick="filterTasksByPriority('muy-importante')" id="filter-btn-muy-importante" class="text-[11px] px-2.5 py-1 rounded-full bg-brand-black text-rose-400 hover:text-white border border-rose-500/30 transition-all-custom">
+                            🔴 Muy Importante
+                        </button>
+                        <button onclick="filterTasksByPriority('importante')" id="filter-btn-importante" class="text-[11px] px-2.5 py-1 rounded-full bg-brand-black text-amber-400 hover:text-white border border-amber-500/30 transition-all-custom">
+                            🟡 Importante
+                        </button>
+                        <button onclick="filterTasksByPriority('casual')" id="filter-btn-casual" class="text-[11px] px-2.5 py-1 rounded-full bg-brand-black text-sky-400 hover:text-white border border-sky-500/30 transition-all-custom">
+                            🟢 Casual
+                        </button>
+                    </div>
+
+                    <!-- Lista de tareas actuales para el período seleccionado -->
+                    <div id="tasks-list-container" class="space-y-3">
+                        <!-- Inyectado dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA: BANCO DE IDEAS -->
+            <div id="view-ideas" class="view-panel space-y-6 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Banco de Ideas Rápido</h2>
+                        <p class="text-xs text-gray-400 font-medium mt-1">Guarda inspiraciones espontáneas y promueve las mejores a proyectos completos con un solo clic.</p>
+                    </div>
+                    <button onclick="openModal('add-idea-modal')" class="bg-brand-green hover:bg-brand-green-hover text-black font-semibold text-xs py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-all-custom hover:shadow-glow self-start sm:self-center">
+                        <i data-lucide="lightbulb" class="w-4 h-4"></i> Nueva Idea Rápida
+                    </button>
+                </div>
+
+                <!-- Grid de Ideas -->
+                <div id="ideas-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Inyectado dinámicamente -->
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: CREAR PROYECTO -->
+    <div id="add-project-modal" class="fixed inset-0 z-50 overflow-y-auto hidden" role="dialog" aria-modal="true">
+        <div class="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity" onclick="closeModal('add-project-modal')"></div>
+            <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
+            <div class="inline-block transform overflow-hidden rounded-2xl bg-brand-card text-left align-bottom border border-brand-border shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+                <div class="px-6 py-5 border-b border-brand-border flex items-center justify-between">
+                    <h3 class="text-md font-bold text-white flex items-center gap-2">
+                        <i data-lucide="folder-plus" class="text-brand-green w-5 h-5"></i> Registrar Nuevo Proyecto
+                    </h3>
+                    <button onclick="closeModal('add-project-modal')" class="text-gray-400 hover:text-white transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <form onsubmit="saveNewProject(event)">
+                    <div class="px-6 py-5 space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Nombre del Proyecto</label>
+                            <input type="text" id="project-name-input" required placeholder="Ej: Rediseño de Sitio Web o App de Rutinas" class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Descripción del Objetivo</label>
+                            <textarea id="project-desc-input" rows="3" placeholder="Describe brevemente lo que quieres lograr con este proyecto..." class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-green transition-all-custom"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Categoría</label>
+                                <select id="project-category-input" class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                                    <option value="Trabajo">Trabajo / Negocios</option>
+                                    <option value="Personal">Personal / Salud</option>
+                                    <option value="Estudios">Estudios / Desarrollo</option>
+                                    <option value="Finanzas">Finanzas</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Fecha Límite</label>
+                                <input type="date" id="project-deadline-input" required class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 bg-brand-dark/50 border-t border-brand-border flex justify-end gap-3 rounded-b-2xl">
+                        <button type="button" onclick="closeModal('add-project-modal')" class="px-4 py-2.5 bg-brand-black border border-brand-border text-gray-300 rounded-xl text-xs font-semibold hover:text-white transition-all-custom">Cancelar</button>
+                        <button type="submit" class="px-5 py-2.5 bg-brand-green hover:bg-brand-green-hover text-black rounded-xl text-xs font-bold transition-all-custom hover:shadow-glow">Guardar Proyecto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DETALLES AMPLIADOS DE UN PROYECTO -->
+    <div id="project-detail-modal" class="fixed inset-0 z-50 overflow-y-auto hidden" role="dialog" aria-modal="true">
+        <div class="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity" onclick="closeModal('project-detail-modal')"></div>
+            <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
+            <div class="inline-block transform overflow-hidden rounded-2xl bg-brand-card text-left align-bottom border border-brand-border shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:align-middle">
+                <div class="px-6 py-5 border-b border-brand-border flex items-center justify-between">
+                    <div>
+                        <span id="detail-project-category" class="text-[10px] font-bold tracking-widest uppercase text-brand-green px-2 py-1 rounded bg-brand-green/10">CATEGORÍA</span>
+                        <h3 id="detail-project-name" class="text-lg font-bold text-white mt-1.5">Nombre del Proyecto</h3>
+                    </div>
+                    <button onclick="closeModal('project-detail-modal')" class="text-gray-400 hover:text-white transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="px-6 py-5 space-y-6">
+                    <div>
+                        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Descripción del Proyecto</h4>
+                        <p id="detail-project-desc" class="text-sm text-gray-300 bg-brand-black p-4 rounded-xl border border-brand-border">Sin descripción cargada.</p>
+                    </div>
+
+                    <!-- Progreso Integrado del Proyecto -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Avance e Hitos</span>
+                            <span id="detail-project-progress-percent" class="text-xs font-bold text-brand-green">0%</span>
+                        </div>
+                        <div class="w-full bg-brand-black rounded-full h-2.5 border border-brand-border">
+                            <div id="detail-project-progress-bar" class="bg-brand-green h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tareas Específicas del Proyecto con Nivel de Importancia -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Hitos y Tareas del Proyecto</h4>
+                            <span id="detail-project-tasks-count" class="text-xs text-gray-400">0 tareas</span>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input id="detail-new-task-title" type="text" placeholder="Agregar un hito a este proyecto..." class="flex-1 bg-brand-black border border-brand-border rounded-xl text-xs px-4 py-3 text-white focus:outline-none focus:border-brand-green">
+                            <div class="flex gap-2">
+                                <select id="detail-new-task-priority" class="bg-brand-black border border-brand-border rounded-xl text-xs px-3 py-3 text-white focus:outline-none focus:border-brand-green">
+                                    <option value="muy-importante">🔴 Crítico</option>
+                                    <option value="importante" selected>🟡 Medio</option>
+                                    <option value="casual">🟢 Casual</option>
+                                </select>
+                                <button onclick="addProjectSubtask()" class="bg-brand-green hover:bg-brand-green-hover text-black px-4 py-2.5 rounded-xl text-xs font-bold transition-all-custom">Agregar</button>
+                            </div>
+                        </div>
+                        <div id="detail-project-tasks-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                            <!-- Inyectado dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Ideas del Proyecto -->
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Ideas de Apoyo o Notas de Investigación</h4>
+                        <div class="flex gap-2">
+                            <input id="detail-new-idea-title" type="text" placeholder="Anotar idea o recurso rápido..." class="flex-1 bg-brand-black border border-brand-border rounded-xl text-xs px-4 py-3 text-white focus:outline-none focus:border-brand-green">
+                            <button onclick="addProjectSubidea()" class="bg-brand-green/20 hover:bg-brand-green text-brand-green hover:text-black border border-brand-green/30 px-4 py-2.5 rounded-xl text-xs font-bold transition-all-custom">Guardar</button>
+                        </div>
+                        <div id="detail-project-ideas-list" class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                            <!-- Inyectado dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-brand-dark/50 border-t border-brand-border flex justify-between items-center rounded-b-2xl">
+                    <button id="btn-delete-project" class="text-xs text-rose-500 hover:text-rose-400 font-semibold flex items-center gap-1.5">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar Proyecto por Completo
+                    </button>
+                    <button onclick="closeModal('project-detail-modal')" class="px-5 py-2.5 bg-brand-green hover:bg-brand-green-hover text-black rounded-xl text-xs font-bold transition-all-custom">Finalizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CREAR IDEA RÁPIDA -->
+    <div id="add-idea-modal" class="fixed inset-0 z-50 overflow-y-auto hidden" role="dialog" aria-modal="true">
+        <div class="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity" onclick="closeModal('add-idea-modal')"></div>
+            <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
+            <div class="inline-block transform overflow-hidden rounded-2xl bg-brand-card text-left align-bottom border border-brand-border shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+                <div class="px-6 py-5 border-b border-brand-border flex items-center justify-between">
+                    <h3 class="text-md font-bold text-white flex items-center gap-2">
+                        <i data-lucide="lightbulb" class="text-brand-green w-5 h-5"></i> Registrar Inspiración o Idea
+                    </h3>
+                    <button onclick="closeModal('add-idea-modal')" class="text-gray-400 hover:text-white transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <form onsubmit="saveNewIdea(event)">
+                    <div class="px-6 py-5 space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Título de la Idea</label>
+                            <input type="text" id="idea-title-input" required placeholder="Ej: Iniciar campaña en Tik Tok, Nueva tecnología de backend" class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Descripción de la idea</label>
+                            <textarea id="idea-desc-input" rows="4" placeholder="Escribe detalles rápidos, enlaces o pensamientos de apoyo para no olvidarlos..." class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-green transition-all-custom"></textarea>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 bg-brand-dark/50 border-t border-brand-border flex justify-end gap-3 rounded-b-2xl">
+                        <button type="button" onclick="closeModal('add-idea-modal')" class="px-4 py-2.5 bg-brand-black border border-brand-border text-gray-300 rounded-xl text-xs font-semibold hover:text-white transition-all-custom">Cancelar</button>
+                        <button type="submit" class="px-5 py-2.5 bg-brand-green hover:bg-brand-green-hover text-black rounded-xl text-xs font-bold transition-all-custom hover:shadow-glow">Guardar Idea</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Datos por defecto para arranque limpio con Niveles de Importancia incorporados
+        const defaultProjects = [
+            {
+                id: 'p1',
+                name: 'Rediseño Web Corporativa',
+                description: 'Optimizar la interfaz de usuario del sitio web principal para mejorar la conversión de clientes y adaptar la marca.',
+                category: 'Trabajo',
+                deadline: '2026-07-15',
+                status: 'In Progress',
+                tasks: [
+                    { id: 'pt1', title: 'Diseñar wireframes del Home', completed: true, priority: 'muy-importante' },
+                    { id: 'pt2', title: 'Configurar pasarela de pagos', completed: false, priority: 'muy-importante' },
+                    { id: 'pt3', title: 'Redacción de textos de ventas', completed: false, priority: 'importante' }
+                ],
+                ideas: [
+                    { id: 'pi1', title: 'Usar animaciones sutiles en los botones de checkout' }
+                ]
+            },
+            {
+                id: 'p2',
+                name: 'Plan de Entrenamiento Físico',
+                description: 'Establecer metas de salud, rutinas semanales y nutrición balanceada.',
+                category: 'Personal',
+                deadline: '2026-12-31',
+                status: 'In Progress',
+                tasks: [
+                    { id: 'pt4', title: 'Comprar pesas y equipamiento básico', completed: true, priority: 'importante' },
+                    { id: 'pt5', title: 'Diseñar rutina de fuerza de 3 días', completed: true, priority: 'muy-importante' },
+                    { id: 'pt6', title: 'Hacer chequeo médico general', completed: false, priority: 'casual' }
+                ],
+                ideas: [
+                    { id: 'pi2', title: 'Probar recetas saludables altas en proteínas' }
+                ]
+            }
+        ];
+
+        const defaultTasks = [
+            { id: 't1', title: 'Organizar bandeja de entrada de correo electrónico', period: 'day', completed: false, projectId: 'p1', priority: 'casual' },
+            { id: 't2', title: 'Llamar a proveedor de hosting', period: 'day', completed: true, projectId: 'p1', priority: 'muy-importante' },
+            { id: 't3', title: 'Preparar reporte financiero semanal', period: 'week', completed: false, projectId: '', priority: 'importante' },
+            { id: 't4', title: 'Inscribirme en el curso de Inteligencia Artificial', period: 'month', completed: false, projectId: 'p2', priority: 'importante' },
+            { id: 't5', title: 'Ahorrar 20% de los ingresos anuales', period: 'year', completed: false, projectId: '', priority: 'muy-importante' }
+        ];
+
+        const defaultIdeas = [
+            { id: 'id1', title: 'Crear un canal de YouTube sobre automatización', description: 'Subir tutoriales cortos explicando cómo usar software libre para automatizar tareas repetitivas en oficinas.', date: '2026-06-19' },
+            { id: 'id2', title: 'Idea de App móvil para dueños de mascotas', description: 'Recordatorios de vacunas, alimentación personalizada y red de veterinarios de emergencia locales.', date: '2026-06-18' }
+        ];
+
+        // Inicialización segura del Estado de Memoria Local
+        let projects = [];
+        let tasks = [];
+        let ideas = [];
+
+        try {
+            projects = JSON.parse(localStorage.getItem('chronos_projects')) || defaultProjects;
+            tasks = JSON.parse(localStorage.getItem('chronos_tasks')) || defaultTasks;
+            ideas = JSON.parse(localStorage.getItem('chronos_ideas')) || defaultIdeas;
+
+            // Retrocompatibilidad: Asegurar que todas las tareas tengan un campo de prioridad
+            tasks = tasks.map(t => {
+                if(!t.priority) t.priority = 'importante';
+                return t;
+            });
+            projects = projects.map(p => {
+                if(p.tasks) {
+                    p.tasks = p.tasks.map(pt => {
+                        if(!pt.priority) pt.priority = 'importante';
+                        return pt;
+                    });
+                }
+                return p;
+            });
+        } catch (e) {
+            console.error("No se pudo cargar localStorage de manera limpia. Usando datos por defecto.", e);
+            projects = defaultProjects;
+            tasks = defaultTasks;
+            ideas = defaultIdeas;
+        }
+
+        let activeTab = 'dashboard';
+        let activeTaskPeriod = 'day';
+        let currentViewingProjectId = null;
+        let currentPriorityFilter = 'all';
+
+        // Variables del Temporizador de Concentración
+        let timerInterval = null;
+        let timerTimeLeft = 25 * 60;
+        let timerRunning = false;
+
+        // Registro de Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker de Chronos registrado con éxito', reg.scope))
+                    .catch(err => console.warn('Error al registrar el Service Worker', err));
+            });
+        }
+
+        // Arranque Inicial de Aplicación
+        window.onload = function() {
+            checkAuth();
+            updateTime();
+            setInterval(updateTime, 1000);
+
+            switchTab('dashboard');
+            switchTaskPeriod('day');
+
+            renderDashboard();
+            renderProjects();
+            renderTasks();
+            renderIdeas();
+            renderProjectSelectOptions();
+
+            updateNotificationBanner();
+            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                startNotificationCheck();
+            }
+
+            safeCreateIcons();
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+
+            const timeEl = document.getElementById('live-time');
+            const dateEl = document.getElementById('live-date');
+
+            if (timeEl) timeEl.innerText = now.toLocaleTimeString('es-ES', timeOptions);
+            if (dateEl) dateEl.innerText = now.toLocaleDateString('es-ES', dateOptions).replace(/^\w/, c => c.toUpperCase());
+        }
+
+        function saveToStorage() {
+            try {
+                localStorage.setItem('chronos_projects', JSON.stringify(projects));
+                localStorage.setItem('chronos_tasks', JSON.stringify(tasks));
+                localStorage.setItem('chronos_ideas', JSON.stringify(ideas));
+            } catch (e) {
+                console.error("Fallo al escribir en localStorage", e);
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            if (toast && toastMsg) {
+                toastMsg.innerText = message;
+                toast.classList.remove('translate-x-[150%]');
+
+                setTimeout(() => {
+                    toast.classList.add('translate-x-[150%]');
+                }, 3000);
+            }
+        }
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+
+            document.querySelectorAll('.view-panel').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+
+            const targetPanel = document.getElementById(`view-${tabId}`);
+            if(targetPanel) {
+                targetPanel.classList.remove('hidden');
+            }
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if(btn.id === `nav-${tabId}`) {
+                    btn.classList.add('bg-brand-green', 'text-black', 'shadow-glow');
+                    btn.classList.remove('text-gray-400', 'hover:bg-brand-card/50', 'hover:text-white');
+                } else {
+                    btn.classList.remove('bg-brand-green', 'text-black', 'shadow-glow');
+                    btn.classList.add('text-gray-400', 'hover:bg-brand-card/50', 'hover:text-white');
+                }
+            });
+
+            document.querySelectorAll('.nav-btn-mobile').forEach(btn => {
+                if(btn.getAttribute('data-tab') === tabId) {
+                    btn.classList.add('bg-brand-green', 'text-black');
+                    btn.classList.remove('text-gray-400');
+                } else {
+                    btn.classList.remove('bg-brand-green', 'text-black');
+                    btn.classList.add('text-gray-400');
+                }
+            });
+
+            const titleMap = {
+                dashboard: 'Dashboard General',
+                projects: 'Tablero de Proyectos',
+                tasks: 'Tareas Temporales',
+                ideas: 'Inspiración e Ideas'
+            };
+            const pageTitleEl = document.getElementById('page-title');
+            if (pageTitleEl) pageTitleEl.innerText = titleMap[tabId] || 'Chronos';
+
+            const mobileSidebar = document.getElementById('mobile-sidebar');
+            if (mobileSidebar) {
+                mobileSidebar.classList.add('hidden');
+                mobileSidebar.classList.remove('flex');
+            }
+
+            if (tabId === 'dashboard') {
+                renderDashboard();
+            } else if (tabId === 'projects') {
+                renderProjects();
+            } else if (tabId === 'tasks') {
+                renderTasks();
+            } else if (tabId === 'ideas') {
+                renderIdeas();
+            }
+        }
+
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('mobile-sidebar');
+            if(sidebar) {
+                if(sidebar.classList.contains('hidden')) {
+                    sidebar.classList.remove('hidden');
+                    sidebar.classList.add('flex');
+                } else {
+                    sidebar.classList.add('hidden');
+                    sidebar.classList.remove('flex');
+                }
+            }
+        }
+
+        function toggleTimer() {
+            const playBtn = document.getElementById('btn-timer-play');
+            const statusEl = document.getElementById('focus-status');
+
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                if (playBtn) playBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-black"></i> Iniciar`;
+                if (statusEl) statusEl.innerText = "Pausado";
+            } else {
+                timerRunning = true;
+                if (playBtn) playBtn.innerHTML = `<i data-lucide="pause" class="w-4 h-4 fill-black"></i> Pausar`;
+                if (statusEl) statusEl.innerText = "Concentrado";
+
+                timerInterval = setInterval(() => {
+                    timerTimeLeft--;
+                    updateTimerDisplay();
+
+                    if (timerTimeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        timerRunning = false;
+                        timerTimeLeft = 25 * 60;
+                        if (playBtn) playBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-black"></i> Iniciar`;
+                        if (statusEl) statusEl.innerText = "¡Completado!";
+
+                        playBeepSound();
+                        showToast("¡Excelente sesión de enfoque completada! Tómate un respiro.");
+                    }
+                }, 1000);
+            }
+            safeCreateIcons();
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerTimeLeft = 25 * 60;
+            updateTimerDisplay();
+
+            const playBtn = document.getElementById('btn-timer-play');
+            const statusEl = document.getElementById('focus-status');
+            if (playBtn) playBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-black"></i> Iniciar`;
+            if (statusEl) statusEl.innerText = "Concentración";
+
+            safeCreateIcons();
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerTimeLeft / 60);
+            const seconds = timerTimeLeft % 60;
+            const displayStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const displayEl = document.getElementById('timer-display');
+            if (displayEl) displayEl.innerText = displayStr;
+        }
+
+        function playBeepSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            } catch (e) {
+                console.warn("La reproducción de sonido nativo no fue permitida.");
+            }
+        }
+
+        function getPriorityBadges(priority) {
+            const map = {
+                'muy-importante': {
+                    text: 'Crítico',
+                    bg: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
+                    dot: 'bg-rose-500'
+                },
+                'importante': {
+                    text: 'Importante',
+                    bg: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+                    dot: 'bg-amber-500'
+                },
+                'casual': {
+                    text: 'Casual / Rutina',
+                    bg: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
+                    dot: 'bg-sky-400'
+                }
+            };
+            return map[priority] || map['importante'];
+        }
+
+        function renderDashboard() {
+            const activeProjCount = projects.length;
+
+            const pendingHigh = tasks.filter(t => !t.completed && t.priority === 'muy-importante').length;
+            const pendingMedium = tasks.filter(t => !t.completed && t.priority === 'importante').length;
+            const pendingLow = tasks.filter(t => !t.completed && t.priority === 'casual').length;
+
+            const sProj = document.getElementById('stat-active-projects');
+            const sCritico = document.getElementById('stat-critico-tasks');
+            const sImportante = document.getElementById('stat-importante-tasks');
+            const sCasual = document.getElementById('stat-casual-tasks');
+
+            if (sProj) sProj.innerText = activeProjCount;
+            if (sCritico) sCritico.innerText = pendingHigh;
+            if (sImportante) sImportante.innerText = pendingMedium;
+            if (sCasual) sCasual.innerText = pendingLow;
+
+            const todayTasks = tasks.filter(t => t.period === 'day');
+            const totalToday = todayTasks.length;
+
+            if (totalToday > 0) {
+                const highTodayCount = todayTasks.filter(t => t.priority === 'muy-importante').length;
+                const mediumTodayCount = todayTasks.filter(t => t.priority === 'importante').length;
+                const lowTodayCount = todayTasks.filter(t => t.priority === 'casual').length;
+
+                const pctHigh = Math.round((highTodayCount / totalToday) * 100);
+                const pctMed = Math.round((mediumTodayCount / totalToday) * 100);
+                const pctLow = Math.round((lowTodayCount / totalToday) * 100);
+
+                document.getElementById('bar-priority-high').style.width = `${pctHigh}%`;
+                document.getElementById('bar-priority-medium').style.width = `${pctMed}%`;
+                document.getElementById('bar-priority-low').style.width = `${pctLow}%`;
+
+                document.getElementById('importance-distribution-text').innerText =
+                    `${pctHigh}% Crítico | ${pctMed}% Importante | ${pctLow}% Casual`;
+            } else {
+                document.getElementById('bar-priority-high').style.width = '0%';
+                document.getElementById('bar-priority-medium').style.width = '0%';
+                document.getElementById('bar-priority-low').style.width = '0%';
+                document.getElementById('importance-distribution-text').innerText = 'Sin tareas asignadas para hoy';
+            }
+
+            const dailyTasksList = document.getElementById('dashboard-daily-tasks');
+            if (dailyTasksList) {
+                dailyTasksList.innerHTML = '';
+
+                if (todayTasks.length === 0) {
+                    dailyTasksList.innerHTML = `
+                        <div class="text-center py-8 text-gray-500 text-xs">
+                            <i data-lucide="check-check" class="mx-auto w-7 h-7 mb-1 text-gray-600"></i>
+                            No hay tareas asignadas para el día de hoy.
+                        </div>
+                    `;
+                } else {
+                    const sortedTodayTasks = [...todayTasks].sort((a, b) => {
+                        const score = { 'muy-importante': 3, 'importante': 2, 'casual': 1 };
+                        return score[b.priority] - score[a.priority];
+                    });
+
+                    sortedTodayTasks.forEach(task => {
+                        const projectOfTask = projects.find(p => p.id === task.projectId);
+                        const projectTag = projectOfTask ? `<span class="text-[9px] bg-brand-green/10 text-brand-green px-1.5 py-0.5 rounded border border-brand-green/20">${projectOfTask.name}</span>` : '';
+
+                        const badgeData = getPriorityBadges(task.priority);
+
+                        const itemHTML = `
+                            <div class="flex items-center justify-between p-3.5 bg-brand-black rounded-xl border border-brand-border/40 hover:border-brand-green/20 transition-all-custom">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <button onclick="toggleTaskStatus('${task.id}')" class="flex-shrink-0 w-4 h-4 rounded border ${task.completed ? 'bg-brand-green border-brand-green text-black' : 'border-gray-600'} flex items-center justify-center hover:border-brand-green transition-all-custom">
+                                        ${task.completed ? '<i data-lucide="check" class="w-3 h-3 stroke-[3px]"></i>' : ''}
+                                    </button>
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-semibold text-white ${task.completed ? 'line-through text-gray-500' : ''} truncate">${task.title}</p>
+                                        <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                                            <span class="text-[9px] px-1.5 py-0.2 rounded-full border ${badgeData.bg}">
+                                                ${badgeData.text}
+                                            </span>
+                                            ${projectTag}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        dailyTasksList.insertAdjacentHTML('beforeend', itemHTML);
+                    });
+                }
+            }
+
+            const dashboardProjectsGrid = document.getElementById('dashboard-projects-grid');
+            if (dashboardProjectsGrid) {
+                dashboardProjectsGrid.innerHTML = '';
+                const sliceProjects = projects.slice(0, 3);
+
+                if (sliceProjects.length === 0) {
+                    dashboardProjectsGrid.innerHTML = `
+                        <div class="col-span-full text-center py-6 text-gray-500 text-xs">
+                            Aún no cuentas con proyectos activos.
+                        </div>
+                    `;
+                } else {
+                    sliceProjects.forEach(proj => {
+                        const totalSub = proj.tasks ? proj.tasks.length : 0;
+                        const completedSub = proj.tasks ? proj.tasks.filter(t => t.completed).length : 0;
+                        const progressVal = totalSub > 0 ? Math.round((completedSub / totalSub) * 100) : 0;
+
+                        const cardHTML = `
+                            <div onclick="viewProjectDetails('${proj.id}')" class="bg-brand-black p-4 rounded-xl border border-brand-border hover:border-brand-green/30 transition-all-custom cursor-pointer hover:-translate-y-1">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="text-[9px] font-bold tracking-wider uppercase text-brand-green px-2 py-0.5 rounded bg-brand-green/10">${proj.category}</span>
+                                    <span class="text-[10px] text-gray-400 font-mono">${proj.deadline}</span>
+                                </div>
+                                <h4 class="font-bold text-xs text-white truncate mb-3">${proj.name}</h4>
+                                <div>
+                                    <div class="flex justify-between items-center text-[10px] mb-1">
+                                        <span class="text-gray-400">Progreso</span>
+                                        <span class="text-brand-green font-bold">${progressVal}%</span>
+                                    </div>
+                                    <div class="w-full bg-brand-card rounded-full h-1.5 border border-brand-border">
+                                        <div class="bg-brand-green h-1.5 rounded-full" style="width: ${progressVal}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        dashboardProjectsGrid.insertAdjacentHTML('beforeend', cardHTML);
+                    });
+                }
+            }
+
+            renderSummary();
+            safeCreateIcons();
+        }
+
+        function addDashboardQuickTask() {
+            const input = document.getElementById('dashboard-quick-task-input');
+            const prioritySelect = document.getElementById('dashboard-quick-priority');
+            const timeInput = document.getElementById('dashboard-quick-time');
+            const title = input ? input.value.trim() : '';
+            const priority = prioritySelect ? prioritySelect.value : 'importante';
+            const deadline_time = timeInput ? timeInput.value : '';
+            if(!title) return;
+
+            const newTask = {
+                id: 't_' + Date.now(),
+                title: title,
+                period: 'day',
+                completed: false,
+                projectId: '',
+                priority: priority,
+                deadline_time: deadline_time
+            };
+
+            tasks.push(newTask);
+            saveToStorage();
+            if (input) input.value = '';
+            if (timeInput) timeInput.value = '';
+            renderDashboard();
+            showToast('Tarea del día agregada');
+        }
+
+        function renderProjects() {
+            const grid = document.getElementById('projects-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            if (projects.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full bg-brand-card p-12 rounded-2xl border border-brand-border text-center">
+                        <i data-lucide="folder-open" class="mx-auto w-12 h-12 text-gray-600 mb-3"></i>
+                        <h3 class="text-md font-bold text-white mb-1">No hay proyectos activos</h3>
+                        <p class="text-xs text-gray-400 mb-4">Administra tus objetivos complejos dividiéndolos en proyectos y tareas estructuradas.</p>
+                        <button onclick="openModal('add-project-modal')" class="bg-brand-green hover:bg-brand-green-hover text-black font-semibold text-xs py-2 px-4 rounded-xl transition-all-custom">Crear Proyecto</button>
+                    </div>
+                `;
+                safeCreateIcons();
+                return;
+            }
+
+            projects.forEach(proj => {
+                const totalSub = proj.tasks ? proj.tasks.length : 0;
+                const completedSub = proj.tasks ? proj.tasks.filter(t => t.completed).length : 0;
+                const progressVal = totalSub > 0 ? Math.round((completedSub / totalSub) * 100) : 0;
+
+                const cardHTML = `
+                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border hover:border-brand-green/30 transition-all-custom flex flex-col justify-between hover:shadow-glow">
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-[9px] font-bold tracking-wider uppercase text-brand-green px-2 py-1 rounded bg-brand-green/10 border border-brand-green/20">${proj.category}</span>
+                                <span class="text-xs text-gray-400 flex items-center gap-1 font-mono">
+                                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${proj.deadline}
+                                </span>
+                            </div>
+                            <h3 class="text-md font-bold text-white mb-2 truncate">${proj.name}</h3>
+                            <p class="text-xs text-gray-400 line-clamp-2 mb-4">${proj.description || 'Sin descripción detallada.'}</p>
+                        </div>
+                        <div class="space-y-4 pt-3 border-t border-brand-border/40">
+                            <div>
+                                <div class="flex justify-between items-center text-xs mb-1.5">
+                                    <span class="text-gray-400 font-medium">Progreso General</span>
+                                    <span class="text-brand-green font-bold">${progressVal}%</span>
+                                </div>
+                                <div class="w-full bg-brand-black rounded-full h-2 border border-brand-border">
+                                    <div class="bg-brand-green h-2 rounded-full transition-all duration-500" style="width: ${progressVal}%"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-[11px] text-gray-400 font-medium">${completedSub}/${totalSub} Hitos</span>
+                                <button onclick="viewProjectDetails('${proj.id}')" class="text-xs font-semibold text-brand-green hover:text-brand-green-glow transition-colors flex items-center gap-1">
+                                    Gestionar <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', cardHTML);
+            });
+
+            safeCreateIcons();
+        }
+
+        function saveNewProject(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('project-name-input').value.trim();
+            const desc = document.getElementById('project-desc-input').value.trim();
+            const category = document.getElementById('project-category-input').value;
+            const deadline = document.getElementById('project-deadline-input').value;
+
+            if(!name || !deadline) return;
+
+            const newProj = {
+                id: 'p_' + Date.now(),
+                name: name,
+                description: desc,
+                category: category,
+                deadline: deadline,
+                status: 'In Progress',
+                tasks: [],
+                ideas: []
+            };
+
+            projects.push(newProj);
+            saveToStorage();
+            closeModal('add-project-modal');
+
+            document.getElementById('project-name-input').value = '';
+            document.getElementById('project-desc-input').value = '';
+            document.getElementById('project-deadline-input').value = '';
+
+            renderProjects();
+            renderProjectSelectOptions();
+            showToast('Proyecto registrado correctamente');
+        }
+
+        function deleteProject(projectId) {
+            projects = projects.filter(p => p.id !== projectId);
+            tasks = tasks.map(t => {
+                if(t.projectId === projectId) t.projectId = '';
+                return t;
+            });
+            saveToStorage();
+            closeModal('project-detail-modal');
+            renderProjects();
+            renderProjectSelectOptions();
+            showToast('Proyecto eliminado');
+        }
+
+        function viewProjectDetails(projectId) {
+            const proj = projects.find(p => p.id === projectId);
+            if(!proj) return;
+
+            currentViewingProjectId = projectId;
+
+            const dName = document.getElementById('detail-project-name');
+            const dDesc = document.getElementById('detail-project-desc');
+            const dCat = document.getElementById('detail-project-category');
+            const btnDel = document.getElementById('btn-delete-project');
+
+            if (dName) dName.innerText = proj.name;
+            if (dDesc) dDesc.innerText = proj.description || 'Sin descripción';
+            if (dCat) dCat.innerText = proj.category;
+
+            if (btnDel) {
+                btnDel.onclick = function() {
+                    deleteProject(projectId);
+                };
+            }
+
+            renderProjectDetailsLists();
+            openModal('project-detail-modal');
+        }
+
+        function renderProjectDetailsLists() {
+            const proj = projects.find(p => p.id === currentViewingProjectId);
+            if(!proj) return;
+
+            const totalSub = proj.tasks ? proj.tasks.length : 0;
+            const completedSub = proj.tasks ? proj.tasks.filter(t => t.completed).length : 0;
+            const progressVal = totalSub > 0 ? Math.round((completedSub / totalSub) * 100) : 0;
+
+            const dPercent = document.getElementById('detail-project-progress-percent');
+            const dBar = document.getElementById('detail-project-progress-bar');
+            const dCount = document.getElementById('detail-project-tasks-count');
+
+            if (dPercent) dPercent.innerText = `${progressVal}%`;
+            if (dBar) dBar.style.width = `${progressVal}%`;
+            if (dCount) dCount.innerText = `${completedSub}/${totalSub} completadas`;
+
+            const tasksList = document.getElementById('detail-project-tasks-list');
+            if (tasksList) {
+                tasksList.innerHTML = '';
+                if(!proj.tasks || proj.tasks.length === 0) {
+                    tasksList.innerHTML = `<p class="text-[11px] text-gray-500 text-center py-2">No hay hitos creados para este proyecto.</p>`;
+                } else {
+                    const sortedProjTasks = [...proj.tasks].sort((a, b) => {
+                        const score = { 'muy-importante': 3, 'importante': 2, 'casual': 1 };
+                        return score[b.priority || 'importante'] - score[a.priority || 'importante'];
+                    });
+
+                    sortedProjTasks.forEach(t => {
+                        const badgeData = getPriorityBadges(t.priority || 'importante');
+
+                        const taskHTML = `
+                            <div class="flex items-center justify-between bg-brand-black/60 p-2.5 rounded-lg border border-brand-border/40">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <button onclick="toggleSubtaskStatus('${t.id}')" class="w-4 h-4 rounded border ${t.completed ? 'bg-brand-green border-brand-green text-black' : 'border-gray-600'} flex items-center justify-center hover:border-brand-green transition-all-custom">
+                                        ${t.completed ? '<i data-lucide="check" class="w-3 h-3 stroke-[3px]"></i>' : ''}
+                                    </button>
+                                    <div class="flex items-center gap-1.5 min-w-0">
+                                        <span class="text-[9px] px-1.5 py-0.1 rounded-full border ${badgeData.bg}">
+                                            ${badgeData.text}
+                                        </span>
+                                        <span class="text-xs ${t.completed ? 'line-through text-gray-500' : 'text-gray-300'} truncate">${t.title}</span>
+                                    </div>
+                                </div>
+                                <button onclick="deleteSubtask('${t.id}')" class="text-gray-500 hover:text-rose-500 p-1 flex-shrink-0">
+                                    <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        `;
+                        tasksList.insertAdjacentHTML('beforeend', taskHTML);
+                    });
+                }
+            }
+
+            const ideasList = document.getElementById('detail-project-ideas-list');
+            if (ideasList) {
+                ideasList.innerHTML = '';
+                if(!proj.ideas || proj.ideas.length === 0) {
+                    ideasList.innerHTML = `<p class="text-[11px] text-gray-500 text-center py-2">No hay ideas o recursos anotados.</p>`;
+                } else {
+                    proj.ideas.forEach(idItem => {
+                        const ideaHTML = `
+                            <div class="flex items-center justify-between bg-brand-black/60 p-2.5 rounded-lg border border-brand-border/40">
+                                <span class="text-xs text-gray-300 italic">"${idItem.title}"</span>
+                                <button onclick="deleteSubidea('${idItem.id}')" class="text-gray-500 hover:text-rose-500 p-1">
+                                    <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        `;
+                        ideasList.insertAdjacentHTML('beforeend', ideaHTML);
+                    });
+                }
+            }
+
+            safeCreateIcons();
+        }
+
+        function addProjectSubtask() {
+            const input = document.getElementById('detail-new-task-title');
+            const prioritySelect = document.getElementById('detail-new-task-priority');
+            const title = input ? input.value.trim() : '';
+            const priority = prioritySelect ? prioritySelect.value : 'importante';
+            if(!title) return;
+
+            const proj = projects.find(p => p.id === currentViewingProjectId);
+            if(!proj) return;
+
+            if(!proj.tasks) proj.tasks = [];
+
+            proj.tasks.push({
+                id: 'subt_' + Date.now(),
+                title: title,
+                completed: false,
+                priority: priority
+            });
+
+            saveToStorage();
+            if (input) input.value = '';
+            renderProjectDetailsLists();
+            renderProjects();
+            showToast('Hito de proyecto añadido');
+        }
+
+        function toggleSubtaskStatus(subtaskId) {
+            const proj = projects.find(p => p.id === currentViewingProjectId);
+            if(!proj) return;
+
+            const subtask = proj.tasks.find(t => t.id === subtaskId);
+            if(subtask) {
+                subtask.completed = !subtask.completed;
+                saveToStorage();
+                renderProjectDetailsLists();
+                renderProjects();
+            }
+        }
+
+        function deleteSubtask(subtaskId) {
+            const proj = projects.find(p => p.id === currentViewingProjectId);
+            if(!proj) return;
+
+            proj.tasks = proj.tasks.filter(t => t.id !== subtaskId);
+            saveToStorage();
+            renderProjectDetailsLists();
+            renderProjects();
+        }
+
+        function addProjectSubidea() {
+            const input = document.getElementById('detail-new-idea-title');
+            const title = input ? input.value.trim() : '';
+            if(!title) return;
+
+            const proj = projects.find(p => p.id === currentViewingProjectId);
+            if(!proj) return;
+
+            if(!proj.ideas) proj.ideas = [];
+
+            proj.ideas.push({
+                id: 'subid_' + Date.now(),
+                title: title
+            });
+
+            saveToStorage();
+            if (input) input.value = '';
+            renderProjectDetailsLists();
+            showToast('Idea interna de apoyo registrada');
+        }
+
+        function deleteSubidea(subideaId) {
+            const proj = projects.find(p => p.id === currentViewingProjectId);
+            if(!proj) return;
+
+            proj.ideas = proj.ideas.filter(i => i.id !== subideaId);
+            saveToStorage();
+            renderProjectDetailsLists();
+        }
+
+        function switchTaskPeriod(period) {
+            activeTaskPeriod = period;
+
+            document.querySelectorAll('.task-period-tab').forEach(tab => {
+                if(tab.getAttribute('data-period') === period) {
+                    tab.classList.add('border-brand-green', 'text-brand-green', 'active-tab');
+                    tab.classList.remove('border-transparent', 'text-gray-400');
+                } else {
+                    tab.classList.remove('border-brand-green', 'text-brand-green', 'active-tab');
+                    tab.classList.add('border-transparent', 'text-gray-400');
+                }
+            });
+
+            const tw = document.getElementById('task-time-wrapper');
+            if (tw) tw.style.display = period === 'day' ? '' : 'none';
+
+            filterTasksByPriority('all');
+        }
+
+        function filterTasksByPriority(priority) {
+            currentPriorityFilter = priority;
+
+            const priorities = ['all', 'muy-importante', 'importante', 'casual'];
+            priorities.forEach(p => {
+                const btn = document.getElementById(`filter-btn-${p}`);
+                if (!btn) return;
+
+                if (p === priority) {
+                    btn.className = "text-[11px] px-2.5 py-1 rounded-full bg-brand-green text-black font-bold transition-all-custom shadow-sm";
+                } else {
+                    let borderCol = "border-gray-500/20";
+                    let textCol = "text-gray-400 hover:text-white";
+                    if (p === 'muy-importante') { borderCol = "border-rose-500/30"; textCol = "text-rose-400"; }
+                    if (p === 'importante') { borderCol = "border-amber-500/30"; textCol = "text-amber-400"; }
+                    if (p === 'casual') { borderCol = "border-sky-500/30"; textCol = "text-sky-400"; }
+
+                    btn.className = `text-[11px] px-2.5 py-1 rounded-full bg-brand-black ${textCol} border ${borderCol} transition-all-custom`;
+                }
+            });
+
+            renderTasks();
+        }
+
+        function renderProjectSelectOptions() {
+            const select = document.getElementById('task-project-select');
+            if (select) {
+                select.innerHTML = '<option value="">Sin Proyecto</option>';
+                projects.forEach(p => {
+                    const opt = `<option value="${p.id}">${p.name}</option>`;
+                    select.insertAdjacentHTML('beforeend', opt);
+                });
+            }
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('tasks-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let filteredTasks = tasks.filter(t => t.period === activeTaskPeriod);
+
+            if (currentPriorityFilter !== 'all') {
+                filteredTasks = filteredTasks.filter(t => t.priority === currentPriorityFilter);
+            }
+
+            if(filteredTasks.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-gray-500 text-xs">
+                        <i data-lucide="sparkles" class="mx-auto w-8 h-8 text-gray-600 mb-2"></i>
+                        No hay tareas programadas con estas especificaciones.
+                    </div>
+                `;
+                safeCreateIcons();
+                return;
+            }
+
+            filteredTasks.sort((a, b) => {
+                const score = { 'muy-importante': 3, 'importante': 2, 'casual': 1 };
+                return score[b.priority] - score[a.priority];
+            });
+
+            const now = new Date();
+            const currentTime = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+            filteredTasks.forEach(task => {
+                const projectLinked = projects.find(p => p.id === task.projectId);
+                const tagHTML = projectLinked ? `<span class="text-[9px] font-bold uppercase bg-brand-green/10 text-brand-green px-2 py-0.5 rounded border border-brand-green/20">${projectLinked.name}</span>` : '';
+                const badgeData = getPriorityBadges(task.priority);
+                const isOverdue = task.deadline_time && !task.completed && task.deadline_time < currentTime;
+                const timeTag = task.deadline_time
+                    ? `<span class="text-[9px] px-1.5 py-0.5 rounded border font-mono ${isOverdue ? 'bg-rose-500/10 text-rose-400 border-rose-500/30' : 'bg-brand-black text-gray-400 border-brand-border/40'}">⏰ ${task.deadline_time}${isOverdue ? ' VENCIDA' : ''}</span>`
+                    : '';
+                const borderClass = isOverdue ? 'border-rose-500/30 hover:border-rose-500/50' : 'border-brand-border/60 hover:border-brand-green/20';
+
+                const taskHTML = `
+                    <div class="flex items-center justify-between p-4 bg-brand-black rounded-xl border ${borderClass} transition-all-custom">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <button onclick="toggleTaskStatus('${task.id}')" class="flex-shrink-0 w-5 h-5 rounded border ${task.completed ? 'bg-brand-green border-brand-green text-black' : 'border-gray-600'} flex items-center justify-center hover:border-brand-green transition-all-custom">
+                                ${task.completed ? '<i data-lucide="check" class="w-4 h-4 stroke-[3px]"></i>' : ''}
+                            </button>
+                            <div class="min-w-0">
+                                <p class="text-xs sm:text-sm font-semibold text-white ${task.completed ? 'line-through text-gray-500' : ''} truncate">${task.title}</p>
+                                <div class="mt-1 flex flex-wrap items-center gap-2">
+                                    <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border ${badgeData.bg}">${badgeData.text}</span>
+                                    ${timeTag}
+                                    ${tagHTML}
+                                    <span class="text-[9px] text-gray-400 font-mono tracking-wide uppercase">${activeTaskPeriod === 'day' ? 'Hoy' : activeTaskPeriod === 'week' ? 'Semana' : activeTaskPeriod === 'month' ? 'Mes' : 'Año'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="deleteTask('${task.id}')" class="text-gray-500 hover:text-rose-500 p-2 transition-colors flex-shrink-0">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', taskHTML);
+            });
+
+            safeCreateIcons();
+        }
+
+        function addTask(event) {
+            event.preventDefault();
+
+            const titleInput = document.getElementById('task-title-input');
+            const projectSelect = document.getElementById('task-project-select');
+            const prioritySelect = document.getElementById('task-priority-select');
+            const timeInput = document.getElementById('task-time-input');
+
+            const title = titleInput ? titleInput.value.trim() : '';
+            const projectId = projectSelect ? projectSelect.value : '';
+            const priority = prioritySelect ? prioritySelect.value : 'importante';
+            const deadline_time = (activeTaskPeriod === 'day' && timeInput) ? timeInput.value : '';
+
+            if(!title) return;
+
+            const newTask = {
+                id: 't_' + Date.now(),
+                title: title,
+                period: activeTaskPeriod,
+                completed: false,
+                projectId: projectId,
+                priority: priority,
+                deadline_time: deadline_time
+            };
+
+            tasks.push(newTask);
+            saveToStorage();
+
+            if (titleInput) titleInput.value = '';
+            if (projectSelect) projectSelect.value = '';
+            if (timeInput) timeInput.value = '';
+
+            renderTasks();
+            showToast('Tarea agregada exitosamente');
+        }
+
+        function toggleTaskStatus(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if(task) {
+                task.completed = !task.completed;
+                saveToStorage();
+
+                if(activeTab === 'dashboard') {
+                    renderDashboard();
+                } else if(activeTab === 'tasks') {
+                    renderTasks();
+                }
+                showToast(task.completed ? 'Tarea completada 🎉' : 'Tarea marcada como pendiente');
+            }
+        }
+
+        function deleteTask(taskId) {
+            tasks = tasks.filter(t => t.id !== taskId);
+            saveToStorage();
+            renderTasks();
+            showToast('Tarea eliminada');
+        }
+
+        function renderIdeas() {
+            const grid = document.getElementById('ideas-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            if (ideas.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full bg-brand-card p-12 rounded-2xl border border-brand-border text-center">
+                        <i data-lucide="lightbulb" class="mx-auto w-12 h-12 text-gray-600 mb-3"></i>
+                        <h3 class="text-md font-bold text-white mb-1">Tu Banco de Ideas está vacío</h3>
+                        <p class="text-xs text-gray-400 mb-4">Captura pensamientos e innovaciones rápidas aquí para no perder el hilo.</p>
+                        <button onclick="openModal('add-idea-modal')" class="bg-brand-green hover:bg-brand-green-hover text-black font-semibold text-xs py-2 px-4 rounded-xl transition-all-custom">Guardar una Idea</button>
+                    </div>
+                `;
+                safeCreateIcons();
+                return;
+            }
+
+            ideas.forEach(idea => {
+                const cardHTML = `
+                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border flex flex-col justify-between hover:border-brand-green/30 transition-all-custom group hover:shadow-glow">
+                        <div>
+                            <div class="flex items-center justify-between mb-3 border-b border-brand-border/40 pb-2">
+                                <span class="text-[10px] text-gray-400 font-mono">${idea.date}</span>
+                                <div class="p-1 bg-sky-500/10 rounded-lg text-sky-400">
+                                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                                </div>
+                            </div>
+                            <h3 class="text-sm font-bold text-white mb-2 group-hover:text-brand-green transition-colors">${idea.title}</h3>
+                            <p class="text-xs text-gray-400 whitespace-pre-wrap">${idea.description || 'Sin notas adicionales.'}</p>
+                        </div>
+                        <div class="mt-5 pt-3 border-t border-brand-border/40 flex justify-end gap-2">
+                            <button onclick="convertIdeaToProject('${idea.id}')" class="text-[10px] font-bold text-brand-green hover:text-brand-green-glow flex items-center gap-1 bg-brand-green/10 px-2.5 py-1.5 rounded-lg border border-brand-green/20">
+                                <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i> Convertir en Proyecto
+                            </button>
+                            <button onclick="deleteIdea('${idea.id}')" class="text-gray-500 hover:text-rose-500 p-1.5 transition-colors">
+                                <i data-lucide="trash" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', cardHTML);
+            });
+
+            safeCreateIcons();
+        }
+
+        function saveNewIdea(event) {
+            event.preventDefault();
+
+            const title = document.getElementById('idea-title-input').value.trim();
+            const desc = document.getElementById('idea-desc-input').value.trim();
+
+            if(!title) return;
+
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+
+            const newIdea = {
+                id: 'id_' + Date.now(),
+                title: title,
+                description: desc,
+                date: dateStr
+            };
+
+            ideas.push(newIdea);
+            saveToStorage();
+            closeModal('add-idea-modal');
+
+            document.getElementById('idea-title-input').value = '';
+            document.getElementById('idea-desc-input').value = '';
+
+            renderIdeas();
+            showToast('Idea capturada perfectamente');
+        }
+
+        function deleteIdea(ideaId) {
+            ideas = ideas.filter(i => i.id !== ideaId);
+            saveToStorage();
+            renderIdeas();
+            showToast('Idea eliminada');
+        }
+
+        function convertIdeaToProject(ideaId) {
+            const idea = ideas.find(i => i.id === ideaId);
+            if(!idea) return;
+
+            const nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            const deadlineStr = nextWeek.toISOString().split('T')[0];
+
+            const newProj = {
+                id: 'p_' + Date.now(),
+                name: idea.title,
+                description: idea.description,
+                category: 'Trabajo',
+                deadline: deadlineStr,
+                status: 'In Progress',
+                tasks: [],
+                ideas: []
+            };
+
+            projects.push(newProj);
+            ideas = ideas.filter(i => i.id !== ideaId);
+
+            saveToStorage();
+            renderProjects();
+            renderProjectSelectOptions();
+            switchTab('projects');
+            showToast('¡Felicidades! Tu idea fue promovida a Proyecto 🚀');
+        }
+
+        function safeCreateIcons() {
+            try {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            } catch (e) {
+                console.warn("Fallo leve al recrear iconos.", e);
+            }
+        }
+
+        // ── AUTENTICACIÓN ───────────────────────────────────────────────
+
+        const DEFAULT_USER = 'nico';
+        const DEFAULT_PASS = '15465810';
+
+        function getCredentials() {
+            try {
+                return {
+                    user: localStorage.getItem('chronos_user') || DEFAULT_USER,
+                    pass: localStorage.getItem('chronos_pass') || DEFAULT_PASS
+                };
+            } catch(e) {
+                return { user: DEFAULT_USER, pass: DEFAULT_PASS };
+            }
+        }
+
+        function checkAuth() {
+            const isLoggedIn = sessionStorage.getItem('chronos_auth') === 'true';
+            const loginScreen = document.getElementById('login-screen');
+            if (isLoggedIn) {
+                if (loginScreen) loginScreen.classList.add('hidden');
+                updateSidebarUser();
+            }
+            safeCreateIcons();
+        }
+
+        function updateSidebarUser() {
+            const creds = getCredentials();
+            const usernameEl = document.getElementById('sidebar-username');
+            const avatarEl = document.getElementById('sidebar-avatar');
+            if (usernameEl) usernameEl.textContent = creds.user;
+            if (avatarEl) avatarEl.textContent = creds.user.charAt(0).toUpperCase();
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const user = document.getElementById('login-user').value.trim();
+            const pass = document.getElementById('login-pass').value;
+            const creds = getCredentials();
+            const errorEl = document.getElementById('login-error');
+
+            if (user === creds.user && pass === creds.pass) {
+                sessionStorage.setItem('chronos_auth', 'true');
+                document.getElementById('login-screen').classList.add('hidden');
+                if (errorEl) errorEl.classList.add('hidden');
+                updateSidebarUser();
+            } else {
+                if (errorEl) errorEl.classList.remove('hidden');
+                document.getElementById('login-pass').value = '';
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('chronos_auth');
+            window.location.reload();
+        }
+
+        function saveNewCredentials(event) {
+            event.preventDefault();
+            const newUser = document.getElementById('new-user').value.trim();
+            const newPass = document.getElementById('new-pass').value;
+            const confirmPass = document.getElementById('confirm-pass').value;
+            const errorEl = document.getElementById('cred-error');
+
+            if (newPass !== confirmPass) {
+                if (errorEl) errorEl.classList.remove('hidden');
+                return;
+            }
+            if (errorEl) errorEl.classList.add('hidden');
+
+            try {
+                localStorage.setItem('chronos_user', newUser);
+                localStorage.setItem('chronos_pass', newPass);
+                closeModal('change-credentials-modal');
+                updateSidebarUser();
+                showToast('Credenciales actualizadas correctamente');
+                document.getElementById('new-user').value = '';
+                document.getElementById('new-pass').value = '';
+                document.getElementById('confirm-pass').value = '';
+            } catch(e) {
+                showToast('Error al guardar credenciales');
+            }
+        }
+
+        // ── NOTIFICACIONES ──────────────────────────────────────────────
+
+        let notificationInterval = null;
+        let notifiedTasks = {};
+        let sentSummaries = {};
+        try {
+            notifiedTasks = JSON.parse(localStorage.getItem('chronos_notified')) || {};
+            sentSummaries = JSON.parse(localStorage.getItem('chronos_sent_summaries')) || {};
+        } catch(e) {}
+
+        function updateNotificationBanner() {
+            const banner = document.getElementById('notification-banner');
+            if (!banner) return;
+            if (!('Notification' in window) || Notification.permission === 'granted') {
+                banner.classList.add('hidden');
+            } else {
+                banner.classList.remove('hidden');
+            }
+            safeCreateIcons();
+        }
+
+        async function requestNotifPermission() {
+            if (!('Notification' in window)) {
+                showToast('Tu navegador no soporta notificaciones');
+                return;
+            }
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                showToast('¡Notificaciones activadas!');
+                updateNotificationBanner();
+                startNotificationCheck();
+            } else {
+                showToast('Notificaciones bloqueadas. Activalas en la configuración del navegador.');
+            }
+        }
+
+        function startNotificationCheck() {
+            if (notificationInterval) clearInterval(notificationInterval);
+            notificationInterval = setInterval(checkTaskNotifications, 60000);
+            checkTaskNotifications();
+        }
+
+        function checkTaskNotifications() {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            const now = new Date();
+            const currentTime = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+            const today = now.toDateString();
+
+            // Alertas por tarea vencida
+            tasks.filter(t => t.period === 'day' && t.deadline_time && !t.completed).forEach(task => {
+                if (task.deadline_time <= currentTime && !notifiedTasks[task.id]) {
+                    fireNotification('⚠️ Tarea vencida - Chronos', `"${task.title}" debía completarse a las ${task.deadline_time}`);
+                    notifiedTasks[task.id] = true;
+                    try { localStorage.setItem('chronos_notified', JSON.stringify(notifiedTasks)); } catch(e) {}
+                }
+            });
+
+            // Resumen diario a las 20:00
+            const dayKey = 'day_' + today;
+            if (now.getHours() === 20 && now.getMinutes() < 2 && !sentSummaries[dayKey]) {
+                sendSummaryNotification('day');
+                sentSummaries[dayKey] = true;
+                try { localStorage.setItem('chronos_sent_summaries', JSON.stringify(sentSummaries)); } catch(e) {}
+            }
+            // Resumen semanal domingo 20:00
+            const weekKey = 'week_' + today;
+            if (now.getDay() === 0 && now.getHours() === 20 && now.getMinutes() < 2 && !sentSummaries[weekKey]) {
+                sendSummaryNotification('week');
+                sentSummaries[weekKey] = true;
+                try { localStorage.setItem('chronos_sent_summaries', JSON.stringify(sentSummaries)); } catch(e) {}
+            }
+            // Resumen mensual último día del mes 20:00
+            const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+            const monthKey = 'month_' + today;
+            if (now.getDate() === lastDay && now.getHours() === 20 && now.getMinutes() < 2 && !sentSummaries[monthKey]) {
+                sendSummaryNotification('month');
+                sentSummaries[monthKey] = true;
+                try { localStorage.setItem('chronos_sent_summaries', JSON.stringify(sentSummaries)); } catch(e) {}
+            }
+        }
+
+        function fireNotification(title, body) {
+            try {
+                const n = new Notification(title, {
+                    body,
+                    icon: 'https://placehold.co/192x192/090d10/10b981?text=C'
+                });
+                n.onclick = () => { window.focus(); n.close(); };
+            } catch(e) { console.warn('Error al mostrar notificación', e); }
+        }
+
+        function sendSummaryNotification(period) {
+            const periodTasks = tasks.filter(t => t.period === period);
+            const total = periodTasks.length;
+            const completed = periodTasks.filter(t => t.completed).length;
+            const pending = total - completed;
+            const names = { day: 'del día', week: 'semanal', month: 'mensual', year: 'anual' };
+            if (total === 0) {
+                fireNotification(`📊 Resumen ${names[period]} - Chronos`, 'No tenés tareas registradas para este período.');
+                return;
+            }
+            const emoji = completed === total ? '🎉' : pending > completed ? '⚠️' : '👍';
+            fireNotification(
+                `${emoji} Resumen ${names[period]} - Chronos`,
+                `Completaste ${completed} de ${total} tareas. ${pending > 0 ? `Quedan ${pending} pendientes.` : '¡Todo completado!'}`
+            );
+        }
+
+        function sendManualSummary() {
+            if (Notification.permission !== 'granted') {
+                showToast('Primero activá las notificaciones');
+                return;
+            }
+            sendSummaryNotification('day');
+            showToast('Resumen del día enviado como notificación');
+        }
+
+        // ── RESUMEN VISUAL ───────────────────────────────────────────────
+
+        function renderSummary() {
+            const container = document.getElementById('summary-cards');
+            if (!container) return;
+            const now = new Date();
+            const ct = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+            const periods = [
+                { key: 'day',   label: 'Hoy',    icon: 'sun' },
+                { key: 'week',  label: 'Semana',  icon: 'calendar' },
+                { key: 'month', label: 'Mes',     icon: 'calendar-days' },
+                { key: 'year',  label: 'Año',     icon: 'target' }
+            ];
+            container.innerHTML = '';
+            periods.forEach(p => {
+                const pt = tasks.filter(t => t.period === p.key);
+                const total = pt.length;
+                const completed = pt.filter(t => t.completed).length;
+                const pending = total - completed;
+                const overdue = p.key === 'day' ? pt.filter(t => !t.completed && t.deadline_time && t.deadline_time < ct).length : 0;
+                const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+                const color = pct >= 80 ? '#10B981' : pct >= 50 ? '#F59E0B' : '#F43F5E';
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="bg-brand-black p-4 rounded-xl border border-brand-border hover:border-brand-green/20 transition-all-custom">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-gray-300 uppercase tracking-wider">${p.label}</span>
+                            <span class="text-lg font-extrabold" style="color:${color}">${pct}%</span>
+                        </div>
+                        <div class="w-full bg-brand-card rounded-full h-1.5 mb-3 border border-brand-border/30">
+                            <div class="h-1.5 rounded-full transition-all duration-500" style="width:${pct}%;background:${color}"></div>
+                        </div>
+                        <div class="space-y-1 text-[10px]">
+                            <div class="flex justify-between">
+                                <span class="text-brand-green">✅ ${completed} hechas</span>
+                                <span class="text-gray-400">${total} total</span>
+                            </div>
+                            ${pending > 0 ? `<div class="text-rose-400">⏳ ${pending} pendientes</div>` : ''}
+                            ${overdue > 0 ? `<div class="text-rose-500 font-bold">🚨 ${overdue} vencidas</div>` : ''}
+                            ${total === 0 ? `<div class="text-gray-500 text-center pt-1">Sin tareas</div>` : ''}
+                        </div>
+                    </div>
+                `);
+            });
+            safeCreateIcons();
+        }
+    </script>
+</body>
+</html>
