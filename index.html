@@ -221,6 +221,9 @@
                     <button onclick="switchTab('resumen')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="resumen">
                         <i data-lucide="bar-chart-2" class="mr-3 h-5 w-5"></i> Resumen
                     </button>
+                    <button onclick="switchTab('finanzas')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="finanzas">
+                        <i data-lucide="wallet" class="mr-3 h-5 w-5"></i> Finanzas
+                    </button>
                 </nav>
             </div>
         </div>
@@ -250,6 +253,9 @@
                     </button>
                     <button onclick="switchTab('resumen')" id="nav-resumen" class="nav-btn w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="resumen">
                         <i data-lucide="bar-chart-2" class="mr-3 h-5 w-5"></i> Resumen
+                    </button>
+                    <button onclick="switchTab('finanzas')" id="nav-finanzas" class="nav-btn w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="finanzas">
+                        <i data-lucide="wallet" class="mr-3 h-5 w-5"></i> Finanzas
                     </button>
                 </nav>
                 <!-- Info de Perfil de Usuario -->
@@ -679,7 +685,270 @@
                 </div>
             </div>
 
+            <!-- VISTA: FINANZAS PERSONALES -->
+            <div id="view-finanzas" class="view-panel hidden space-y-6">
+
+                <!-- Header con controles -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Finanzas Personales</h2>
+                        <p class="text-xs text-gray-400 mt-1">Control de ingresos, egresos, presupuestos y metas de ahorro.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="exportFinanceData()" class="flex items-center gap-1.5 text-xs bg-brand-card border border-brand-border hover:border-brand-green/40 text-gray-300 hover:text-white py-2 px-3 rounded-xl transition-all-custom">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar JSON
+                        </button>
+                        <button onclick="triggerFinanceImport()" class="flex items-center gap-1.5 text-xs bg-brand-card border border-brand-border hover:border-brand-green/40 text-gray-300 hover:text-white py-2 px-3 rounded-xl transition-all-custom">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> Importar JSON
+                        </button>
+                        <input type="file" id="finance-import-file" class="hidden" onchange="importFinanceData(event)" accept=".json">
+                        <button onclick="clearAllFinancials()" class="flex items-center gap-1.5 text-xs bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 text-rose-400 py-2 px-3 rounded-xl transition-all-custom">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Formatear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div id="finance-balance-card" class="bg-brand-card p-5 rounded-2xl border border-brand-border transition-all-custom">
+                        <p class="text-[10px] font-bold text-sky-400 uppercase tracking-wider">⚖️ Balance Disponible</p>
+                        <h3 id="finance-net-balance" class="text-2xl font-extrabold text-white mt-1 font-mono">$0,00</h3>
+                        <span id="finance-saving-rate" class="text-[10px] text-gray-400 mt-1 block">Tasa de Ahorros: 0%</span>
+                    </div>
+                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border hover:border-brand-green/30 transition-all-custom">
+                        <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">🟢 Ingresos Totales</p>
+                        <h3 id="finance-total-inflow" class="text-2xl font-extrabold text-white mt-1 font-mono">$0,00</h3>
+                        <span id="inflow-subtext" class="text-[10px] text-gray-500 mt-1 block">0 fijos recurrentes</span>
+                    </div>
+                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border hover:border-rose-500/30 transition-all-custom">
+                        <p class="text-[10px] font-bold text-rose-400 uppercase tracking-wider">🔴 Egresos Totales</p>
+                        <h3 id="finance-total-outflow" class="text-2xl font-extrabold text-white mt-1 font-mono">$0,00</h3>
+                        <span id="outflow-subtext" class="text-[10px] text-gray-500 mt-1 block">0 fijos recurrentes</span>
+                    </div>
+                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border hover:border-amber-500/30 transition-all-custom">
+                        <p class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">💼 Caja Libre</p>
+                        <h3 id="finance-free-cash" class="text-2xl font-extrabold text-white mt-1 font-mono">$0,00</h3>
+                        <span id="allocated-savings-subtext" class="text-[10px] text-gray-500 mt-1 block">$0,00 en metas</span>
+                    </div>
+                </div>
+
+                <!-- Salud financiera + Proyecciones -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border space-y-4">
+                        <div class="flex justify-between items-center pb-2 border-b border-brand-border">
+                            <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                                <i data-lucide="activity" class="text-brand-green w-4 h-4"></i> Salud Financiera
+                            </h3>
+                            <span id="health-badge" class="text-[9px] px-2 py-1 rounded bg-brand-green/20 border border-brand-green/20 font-bold text-brand-green">EXCELENTE</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-brand-black p-3 rounded-xl border border-brand-border text-center">
+                                <span class="text-[9px] text-gray-500 uppercase tracking-wider block">Score General</span>
+                                <h4 id="health-score" class="text-2xl font-extrabold text-brand-green font-mono mt-1">100/100</h4>
+                            </div>
+                            <div class="bg-brand-black p-3 rounded-xl border border-brand-border text-center">
+                                <span class="text-[9px] text-gray-500 uppercase tracking-wider block">Meses sin ingresos</span>
+                                <h4 id="runway-survival" class="text-2xl font-extrabold text-sky-400 font-mono mt-1">0.0m</h4>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="flex items-center gap-2 bg-brand-black p-3 rounded-xl border border-brand-border">
+                                <div class="p-2 bg-rose-500/10 text-rose-400 rounded-lg flex-shrink-0"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i></div>
+                                <div class="min-w-0">
+                                    <span class="text-[9px] text-gray-500 uppercase block">Mayor Gasto</span>
+                                    <span id="insight-highest-expense" class="text-xs font-bold text-white truncate block">Sin datos</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 bg-brand-black p-3 rounded-xl border border-brand-border">
+                                <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg flex-shrink-0"><i data-lucide="trending-down" class="w-3.5 h-3.5"></i></div>
+                                <div class="min-w-0">
+                                    <span class="text-[9px] text-gray-500 uppercase block">Menor Gasto</span>
+                                    <span id="insight-lowest-expense" class="text-xs font-bold text-white truncate block">Sin datos</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border space-y-4">
+                        <div class="pb-2 border-b border-brand-border">
+                            <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                                <i data-lucide="line-chart" class="text-brand-green w-4 h-4"></i> Proyección de Flujo de Caja
+                            </h3>
+                            <p class="text-[9px] text-gray-400 mt-1">Basado en ingresos/egresos recurrentes actuales.</p>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="bg-brand-black p-3 rounded-xl border border-brand-border text-center">
+                                <span class="text-[8px] font-bold text-gray-500 block">1 MES</span>
+                                <span id="projection-1m" class="text-sm font-extrabold font-mono text-white block mt-1">$0</span>
+                            </div>
+                            <div class="bg-brand-black p-3 rounded-xl border border-brand-border text-center">
+                                <span class="text-[8px] font-bold text-gray-500 block">3 MESES</span>
+                                <span id="projection-3m" class="text-sm font-extrabold font-mono text-white block mt-1">$0</span>
+                            </div>
+                            <div class="bg-brand-black p-3 rounded-xl border border-brand-border text-center">
+                                <span class="text-[8px] font-bold text-gray-500 block">6 MESES</span>
+                                <span id="projection-6m" class="text-sm font-extrabold font-mono text-white block mt-1">$0</span>
+                            </div>
+                            <div class="bg-brand-black p-3 rounded-xl border border-brand-border text-center">
+                                <span class="text-[8px] font-bold text-gray-500 block">12 MESES</span>
+                                <span id="projection-12m" class="text-sm font-extrabold font-mono text-white block mt-1">$0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Presupuestos + Metas -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border space-y-4">
+                        <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-brand-border">
+                            <i data-lucide="target" class="text-brand-green w-4 h-4"></i> Límites de Gastos (Presupuestos)
+                        </h3>
+                        <div id="budgets-container" class="space-y-3 max-h-64 overflow-y-auto pr-1"></div>
+                    </div>
+                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border space-y-4">
+                        <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-brand-border">
+                            <i data-lucide="award" class="text-brand-green w-4 h-4"></i> Metas de Ahorro
+                        </h3>
+                        <div id="savings-goals-container" class="space-y-3 max-h-64 overflow-y-auto pr-1"></div>
+                    </div>
+                </div>
+
+                <!-- Formularios -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Cargar movimiento -->
+                    <div class="lg:col-span-7 bg-brand-card p-5 rounded-2xl border border-brand-border space-y-4">
+                        <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="plus-circle" class="text-brand-green w-4 h-4"></i> Cargar Movimiento
+                        </h3>
+                        <div class="flex bg-brand-black p-1 rounded-xl border border-brand-border">
+                            <button type="button" onclick="setFinanceFormType('expense')" id="btn-flow-expense" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all-custom bg-brand-green text-black">🔴 Egreso</button>
+                            <button type="button" onclick="setFinanceFormType('income')" id="btn-flow-income" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all-custom text-gray-400 hover:text-white">🟢 Ingreso</button>
+                        </div>
+                        <form onsubmit="addFinancialRecord(event)" class="space-y-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Categoría</label>
+                                    <select id="finance-record-category" required class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-green transition-all-custom"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Monto ($)</label>
+                                    <input type="number" step="0.01" id="finance-record-amount" required placeholder="0.00" class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Fecha</label>
+                                    <input type="date" id="finance-record-date" required class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                                </div>
+                                <div class="flex items-end">
+                                    <label class="inline-flex items-center gap-2 bg-brand-black border border-brand-border p-2.5 rounded-xl cursor-pointer hover:border-brand-green/40 transition-all-custom w-full">
+                                        <input type="checkbox" id="finance-record-recurring" class="rounded border-brand-border bg-brand-black text-brand-green h-4 w-4">
+                                        <span class="text-xs text-gray-300">¿Recurrente fijo?</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Descripción</label>
+                                <input type="text" id="finance-record-desc" placeholder="Ej: Pago alquiler, honorarios..." class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                            </div>
+                            <button type="submit" class="w-full bg-brand-green hover:bg-brand-green-hover text-black font-bold text-xs py-3 rounded-xl transition-all-custom hover:shadow-glow flex items-center justify-center gap-2">
+                                <i data-lucide="plus" class="w-4 h-4 stroke-[3px]"></i> Guardar Movimiento
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Categorías + Metas -->
+                    <div class="lg:col-span-5 space-y-4">
+                        <div class="bg-brand-card p-5 rounded-2xl border border-brand-border space-y-3">
+                            <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                                <i data-lucide="tag" class="text-brand-green w-4 h-4"></i> Nueva Categoría
+                            </h3>
+                            <div class="flex bg-brand-black p-1 rounded-xl border border-brand-border">
+                                <button type="button" onclick="setCategoryFormType('expense')" id="btn-cat-expense" class="flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all-custom bg-brand-green/20 text-brand-green border border-brand-green/20">Gasto</button>
+                                <button type="button" onclick="setCategoryFormType('income')" id="btn-cat-income" class="flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all-custom text-gray-500 hover:text-white">Ingreso</button>
+                            </div>
+                            <form onsubmit="addFinancialCategory(event)" class="space-y-3">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" id="finance-category-input" required placeholder="Nombre" class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                                    <input type="number" id="finance-category-limit" placeholder="Límite $" class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                                </div>
+                                <button type="submit" class="w-full bg-brand-green/10 hover:bg-brand-green text-brand-green hover:text-black font-bold text-xs py-2 rounded-xl border border-brand-green/30 transition-all-custom">Añadir Categoría</button>
+                            </form>
+                        </div>
+                        <div class="bg-brand-card p-5 rounded-2xl border border-brand-border space-y-3">
+                            <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                                <i data-lucide="award" class="text-brand-green w-4 h-4"></i> Nueva Meta de Ahorro
+                            </h3>
+                            <form onsubmit="addSavingsGoal(event)" class="space-y-3">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" id="goal-name" required placeholder="Nombre meta" class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                                    <input type="number" id="goal-target" required placeholder="Objetivo $" class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                                </div>
+                                <input type="date" id="goal-date" required class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                                <button type="submit" class="w-full bg-brand-green/10 hover:bg-brand-green text-brand-green hover:text-black font-bold text-xs py-2 rounded-xl border border-brand-green/30 transition-all-custom">Añadir Meta</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial -->
+                <div class="bg-brand-card p-5 rounded-2xl border border-brand-border space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-brand-border">
+                        <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="scroll-text" class="text-brand-green w-4 h-4"></i> Libro Diario de Caja
+                        </h3>
+                        <div class="flex flex-wrap gap-1 bg-brand-black p-1 rounded-xl border border-brand-border">
+                            <button onclick="setHistoryFilter('all')" id="btn-hist-all" class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom bg-brand-green text-black">Todos</button>
+                            <button onclick="setHistoryFilter('income')" id="btn-hist-incomes" class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom text-gray-400 hover:text-white">Ingresos</button>
+                            <button onclick="setHistoryFilter('expense')" id="btn-hist-expenses" class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom text-gray-400 hover:text-white">Egresos</button>
+                            <button onclick="setHistoryFilter('recurring')" id="btn-hist-recurring" class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom text-gray-400 hover:text-white">🔄 Fijos</button>
+                        </div>
+                    </div>
+                    <div id="expense-history-list" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Distribución por categorías -->
+                <div class="bg-brand-card p-5 rounded-2xl border border-brand-border space-y-4">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="text-brand-green w-4 h-4"></i> Distribución Porcentual de Egresos
+                    </h3>
+                    <div id="expense-distribution-bars" class="space-y-3"></div>
+                </div>
+
+            </div>
+
         </main>
+    </div>
+
+    <!-- MODAL: ASIGNAR FONDOS A META -->
+    <div id="allocate-funds-modal" class="fixed inset-0 z-[150] overflow-y-auto hidden">
+        <div class="flex min-h-screen items-center justify-center px-4">
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="closeAllocateModal()"></div>
+            <div class="relative bg-[#161F28] border border-[#1E293B] rounded-2xl p-6 w-full max-w-sm shadow-2xl z-10 space-y-4">
+                <div class="flex justify-between items-center pb-2 border-b border-brand-border">
+                    <h4 class="font-bold text-sm text-white flex items-center gap-2">
+                        <i data-lucide="piggy-bank" class="text-brand-green w-4 h-4"></i> Asignar Fondos
+                    </h4>
+                    <button onclick="closeAllocateModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <p class="text-xs text-gray-300">Meta: <strong class="text-white" id="allocate-goal-title">—</strong></p>
+                <div class="bg-brand-black p-3 rounded-xl border border-brand-border space-y-1">
+                    <div class="flex justify-between text-[10px] text-gray-400">
+                        <span>Caja disponible:</span><span id="allocate-available-box" class="font-bold text-brand-green">$0,00</span>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-gray-400">
+                        <span>Faltante meta:</span><span id="allocate-pending-box" class="font-bold text-amber-400">$0,00</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Monto a depositar</label>
+                    <input type="number" step="0.01" id="allocate-amount-input" class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-brand-green transition-all-custom">
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeAllocateModal()" class="flex-1 py-2.5 text-xs font-semibold text-gray-400 hover:text-white bg-brand-black border border-brand-border rounded-xl transition-all-custom">Cancelar</button>
+                    <button onclick="confirmAllocateFunds()" class="flex-1 py-2.5 text-xs font-bold text-black bg-brand-green hover:bg-brand-green-hover rounded-xl transition-all-custom">Confirmar</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL: CREAR PROYECTO -->
@@ -998,15 +1267,16 @@
             saveToCloud();
         }
 
-        function showToast(message) {
+        function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toast-message');
             if (toast && toastMsg) {
                 toastMsg.innerText = message;
+                toast.style.borderLeftColor = isError ? '#F43F5E' : '#10B981';
                 toast.classList.remove('translate-x-[150%]');
-
                 setTimeout(() => {
                     toast.classList.add('translate-x-[150%]');
+                    toast.style.borderLeftColor = '';
                 }, 3000);
             }
         }
@@ -1048,7 +1318,8 @@
                 projects: 'Tablero de Proyectos',
                 tasks: 'Tareas Temporales',
                 ideas: 'Inspiración e Ideas',
-                resumen: 'Resumen de Actividad'
+                resumen: 'Resumen de Actividad',
+                finanzas: 'Finanzas Personales'
             };
             const pageTitleEl = document.getElementById('page-title');
             if (pageTitleEl) pageTitleEl.innerText = titleMap[tabId] || 'Chronos';
@@ -1069,6 +1340,8 @@
                 renderIdeas();
             } else if (tabId === 'resumen') {
                 renderResumen();
+            } else if (tabId === 'finanzas') {
+                initFinanzasView();
             }
         }
 
@@ -2184,6 +2457,427 @@
             });
             safeCreateIcons();
         }
+        // ── MÓDULO FINANZAS ─────────────────────────────────────────────
+
+        const defaultExpenseCategories = [
+            { name: 'Alquiler', limit: 400 }, { name: 'Servicios', limit: 120 },
+            { name: 'Alimentación', limit: 200 }, { name: 'Transporte', limit: 80 },
+            { name: 'Suscripciones', limit: 30 }, { name: 'Otros', limit: 100 }
+        ];
+        const defaultIncomeCategories = [
+            { name: 'Sueldo', limit: null }, { name: 'Freelance', limit: null },
+            { name: 'Inversiones', limit: null }, { name: 'Otros', limit: null }
+        ];
+
+        let expenseCategories = [], incomeCategories = [], fExpenses = [], fIncomes = [], savingsGoals = [];
+        let activeFinanceFormType = 'expense', activeCategoryFormType = 'expense';
+        let activeHistoryFilter = 'all', activeGoalAllocatingId = null;
+
+        try {
+            expenseCategories = JSON.parse(localStorage.getItem('chronos_fin_exp_cats')) || defaultExpenseCategories;
+            incomeCategories  = JSON.parse(localStorage.getItem('chronos_fin_inc_cats')) || defaultIncomeCategories;
+            fExpenses         = JSON.parse(localStorage.getItem('chronos_fin_expenses'))  || [];
+            fIncomes          = JSON.parse(localStorage.getItem('chronos_fin_incomes'))   || [];
+            savingsGoals      = JSON.parse(localStorage.getItem('chronos_fin_savings'))   || [];
+            expenseCategories = expenseCategories.map(c => typeof c === 'string' ? { name: c, limit: null } : c);
+            incomeCategories  = incomeCategories.map(c => typeof c === 'string' ? { name: c, limit: null } : c);
+            fExpenses = fExpenses.map(e => ({ ...e, type: 'expense', recurring: !!e.recurring }));
+            fIncomes  = fIncomes.map(i => ({ ...i, type: 'income',  recurring: !!i.recurring }));
+        } catch(e) {
+            expenseCategories = defaultExpenseCategories; incomeCategories = defaultIncomeCategories;
+        }
+
+        function saveFinanceLocal() {
+            try {
+                localStorage.setItem('chronos_fin_exp_cats', JSON.stringify(expenseCategories));
+                localStorage.setItem('chronos_fin_inc_cats', JSON.stringify(incomeCategories));
+                localStorage.setItem('chronos_fin_expenses', JSON.stringify(fExpenses));
+                localStorage.setItem('chronos_fin_incomes',  JSON.stringify(fIncomes));
+                localStorage.setItem('chronos_fin_savings',  JSON.stringify(savingsGoals));
+            } catch(e) {}
+        }
+
+        function saveFinanceToStorage() { saveFinanceLocal(); saveToCloud(); }
+
+        function initFinanzasView() {
+            setFinanceFormType('expense');
+            setCategoryFormType('expense');
+            const d = document.getElementById('finance-record-date');
+            if (d) d.value = new Date().toISOString().split('T')[0];
+            renderFinanzas();
+        }
+
+        function renderFinanzas() {
+            const totalIn  = fIncomes.reduce((a, v)  => a + parseFloat(v.amount || 0), 0);
+            const totalOut = fExpenses.reduce((a, v) => a + parseFloat(v.amount || 0), 0);
+            const net      = totalIn - totalOut;
+            const totalSav = savingsGoals.reduce((a, v) => a + parseFloat(v.current || 0), 0);
+            const free     = net - totalSav;
+            const fmt = v => v.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            document.getElementById('finance-total-inflow').innerText  = `$${fmt(totalIn)}`;
+            document.getElementById('finance-total-outflow').innerText = `$${fmt(totalOut)}`;
+            document.getElementById('finance-net-balance').innerText   = `${net >= 0 ? '+' : ''}$${fmt(net)}`;
+            document.getElementById('finance-free-cash').innerText     = `$${fmt(free)}`;
+            document.getElementById('allocated-savings-subtext').innerText = `$${fmt(totalSav)} en metas`;
+            document.getElementById('inflow-subtext').innerText  = `${fIncomes.filter(i => i.recurring).length} fijos recurrentes`;
+            document.getElementById('outflow-subtext').innerText = `${fExpenses.filter(e => e.recurring).length} fijos recurrentes`;
+
+            const savPct = totalIn > 0 ? Math.max(0, ((totalIn - totalOut) / totalIn) * 100) : 0;
+            document.getElementById('finance-saving-rate').innerText = `Tasa de Ahorros: ${savPct.toFixed(1)}%`;
+
+            const balCard = document.getElementById('finance-balance-card');
+            const balEl   = document.getElementById('finance-net-balance');
+            if (net >= 0) {
+                balCard.className = 'bg-brand-card p-5 rounded-2xl border border-brand-green/30 transition-all-custom';
+                balEl.className   = 'text-2xl font-extrabold text-brand-green mt-1 font-mono';
+            } else {
+                balCard.className = 'bg-brand-card p-5 rounded-2xl border border-rose-500/30 transition-all-custom';
+                balEl.className   = 'text-2xl font-extrabold text-rose-400 mt-1 font-mono';
+            }
+
+            // Insights
+            if (fExpenses.length > 0) {
+                const sorted = [...fExpenses].sort((a, b) => b.amount - a.amount);
+                document.getElementById('insight-highest-expense').innerText = `${sorted[0].category}: $${fmt(sorted[0].amount)}`;
+                document.getElementById('insight-lowest-expense').innerText  = `${sorted[sorted.length-1].category}: $${fmt(sorted[sorted.length-1].amount)}`;
+            } else {
+                document.getElementById('insight-highest-expense').innerText = 'Sin datos';
+                document.getElementById('insight-lowest-expense').innerText  = 'Sin datos';
+            }
+
+            calcFinancialHealth(net, totalOut, savPct);
+            calcProjections(free, totalIn, totalOut);
+            renderBudgetsAndLimits();
+            renderSavingsGoals();
+            renderFinCategoryDropdown();
+            renderHistoryList();
+            renderDistributionBars(totalOut);
+            safeCreateIcons();
+        }
+
+        function calcFinancialHealth(net, totalOut, savPct) {
+            let score = 100;
+            if (net < 0) score -= 30;
+            if (savPct < 10) score -= 20; else if (savPct < 20) score -= 10;
+            expenseCategories.forEach(cat => {
+                if (cat.limit > 0) {
+                    const used = fExpenses.filter(e => e.category === cat.name).reduce((a, v) => a + parseFloat(v.amount), 0);
+                    if (used > cat.limit) score -= 15;
+                }
+            });
+            score = Math.max(0, score);
+            document.getElementById('health-score').innerText = `${score}/100`;
+            const badge = document.getElementById('health-badge');
+            if (score >= 80)      { badge.innerText = 'EXCELENTE'; badge.className = 'text-[9px] px-2 py-1 rounded bg-brand-green/20 border border-brand-green/20 font-bold text-brand-green'; }
+            else if (score >= 50) { badge.innerText = 'MODERADO';  badge.className = 'text-[9px] px-2 py-1 rounded bg-amber-500/20 border border-amber-500/20 font-bold text-amber-400'; }
+            else                  { badge.innerText = 'CRÍTICO';   badge.className = 'text-[9px] px-2 py-1 rounded bg-rose-500/20 border border-rose-500/20 font-bold text-rose-400'; }
+            const runway = document.getElementById('runway-survival');
+            runway.innerText = (totalOut > 0 && net > 0) ? `${(net / totalOut).toFixed(1)}m` : '0.0m';
+        }
+
+        function calcProjections(free, totalIn, totalOut) {
+            const recIn  = fIncomes.filter(i => i.recurring).reduce((a, v) => a + parseFloat(v.amount), 0);
+            const recOut = fExpenses.filter(e => e.recurring).reduce((a, v) => a + parseFloat(v.amount), 0);
+            const monthly = recIn - recOut;
+            const fmt = v => v.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+            const colorClass = v => v > free ? 'text-sm font-extrabold font-mono text-emerald-400 block mt-1' : v < free ? 'text-sm font-extrabold font-mono text-rose-400 block mt-1' : 'text-sm font-extrabold font-mono text-white block mt-1';
+            [1, 3, 6, 12].forEach((m, i) => {
+                const val = free + monthly * m;
+                const el  = document.getElementById(`projection-${[1,3,6,12][i]}m`);
+                if (el) { el.innerText = `$${fmt(val)}`; el.className = colorClass(val); }
+            });
+        }
+
+        function renderFinCategoryDropdown() {
+            const sel = document.getElementById('finance-record-category');
+            if (!sel) return;
+            sel.innerHTML = '';
+            const list = activeFinanceFormType === 'expense' ? expenseCategories : incomeCategories;
+            list.forEach(c => { const o = document.createElement('option'); o.value = c.name; o.innerText = c.name; sel.appendChild(o); });
+        }
+
+        function renderBudgetsAndLimits() {
+            const el = document.getElementById('budgets-container');
+            if (!el) return;
+            const active = expenseCategories.filter(c => c.limit > 0);
+            if (!active.length) { el.innerHTML = '<p class="text-xs text-gray-500 text-center py-4">Sin límites definidos. Añadí una categoría con límite.</p>'; return; }
+            el.innerHTML = active.map(cat => {
+                const used = fExpenses.filter(e => e.category === cat.name).reduce((a, v) => a + parseFloat(v.amount), 0);
+                const pct  = Math.min(100, Math.round((used / cat.limit) * 100));
+                const bar  = pct >= 100 ? 'bg-rose-500' : pct >= 80 ? 'bg-amber-500' : 'bg-brand-green';
+                const alert = pct >= 100 ? '🚨' : pct >= 80 ? '⚠️' : '';
+                return `<div class="bg-brand-black p-3 rounded-xl border border-brand-border">
+                    <div class="flex justify-between text-[10px] mb-1.5">
+                        <span class="text-gray-300 font-bold">${cat.name} ${alert}</span>
+                        <span class="text-gray-400">$${used.toFixed(0)} / <strong class="text-white">$${cat.limit}</strong> <span class="text-brand-green">(${pct}%)</span></span>
+                    </div>
+                    <div class="w-full bg-brand-black rounded-full h-2 border border-brand-border">
+                        <div class="${bar} h-2 rounded-full transition-all duration-500" style="width:${pct}%"></div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderSavingsGoals() {
+            const el = document.getElementById('savings-goals-container');
+            if (!el) return;
+            if (!savingsGoals.length) { el.innerHTML = '<p class="text-xs text-gray-500 text-center py-4">Sin metas de ahorro. Creá una abajo.</p>'; return; }
+            el.innerHTML = savingsGoals.map(g => {
+                const pct = Math.min(100, Math.round((g.current / g.target) * 100));
+                return `<div class="bg-brand-black p-3 rounded-xl border border-brand-border space-y-2">
+                    <div class="flex justify-between text-[10px]">
+                        <span class="text-gray-300 font-bold">${g.name}</span>
+                        <span class="text-gray-400">$${g.current.toFixed(0)} / <strong class="text-white">$${g.target.toFixed(0)}</strong> <span class="text-brand-green">(${pct}%)</span></span>
+                    </div>
+                    <div class="w-full bg-brand-black rounded-full h-2 border border-brand-border">
+                        <div class="bg-amber-500 h-2 rounded-full transition-all duration-500" style="width:${pct}%"></div>
+                    </div>
+                    <div class="flex items-center justify-between pt-1">
+                        <span class="text-[9px] text-gray-500">Límite: ${g.date}</span>
+                        <div class="flex gap-1.5">
+                            <button onclick="openAllocateModal('${g.id}')" class="text-[9px] bg-brand-green/10 hover:bg-brand-green text-brand-green hover:text-black px-2 py-1 rounded border border-brand-green/20 font-bold transition-all-custom flex items-center gap-1">
+                                <i data-lucide="piggy-bank" class="w-3 h-3"></i> Depositar
+                            </button>
+                            <button onclick="deleteSavingsGoal('${g.id}')" class="p-1 hover:bg-rose-500/10 text-gray-500 hover:text-rose-400 rounded transition-all-custom">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            safeCreateIcons();
+        }
+
+        function renderHistoryList() {
+            const el = document.getElementById('expense-history-list');
+            if (!el) return;
+            let items = [...fIncomes, ...fExpenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+            if (activeHistoryFilter === 'income')    items = items.filter(m => m.type === 'income');
+            if (activeHistoryFilter === 'expense')   items = items.filter(m => m.type === 'expense');
+            if (activeHistoryFilter === 'recurring') items = items.filter(m => m.recurring);
+            if (!items.length) { el.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">Sin movimientos para este filtro.</p>'; return; }
+            const fmt = v => parseFloat(v || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            el.innerHTML = items.map(item => {
+                const isIn   = item.type === 'income';
+                const color  = isIn ? 'text-brand-green' : 'text-rose-400';
+                const border = isIn ? 'border-brand-green/20 bg-brand-green/10 text-brand-green' : 'border-rose-500/20 bg-rose-500/10 text-rose-400';
+                const icon   = isIn ? 'arrow-down-left' : 'arrow-up-right';
+                return `<div class="flex items-center justify-between p-3 bg-brand-black rounded-xl border border-brand-border hover:border-brand-green/20 transition-all-custom">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="p-2 ${border} border rounded-lg flex-shrink-0"><i data-lucide="${icon}" class="w-4 h-4"></i></div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <p class="text-xs font-bold text-white">${item.category}</p>
+                                <span class="text-[9px] text-gray-500">${item.date}</span>
+                                ${item.recurring ? '<span class="text-[8px] bg-brand-green/10 text-brand-green px-1.5 py-0.5 rounded border border-brand-green/20 font-bold">🔄 Fijo</span>' : ''}
+                            </div>
+                            <p class="text-[10px] text-gray-400 truncate">${item.description || 'Sin descripción'}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <span class="text-xs font-extrabold ${color} font-mono">${isIn ? '+' : '-'}$${fmt(item.amount)}</span>
+                        <button onclick="deleteFinancialRecord('${item.id}','${item.type}')" class="p-1.5 hover:bg-rose-500/10 text-gray-500 hover:text-rose-400 rounded-lg transition-all-custom">
+                            <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+            safeCreateIcons();
+        }
+
+        function renderDistributionBars(totalOut) {
+            const el = document.getElementById('expense-distribution-bars');
+            if (!el) return;
+            if (!fExpenses.length) { el.innerHTML = '<p class="text-xs text-gray-500 text-center py-4">Cargá egresos para ver la distribución.</p>'; return; }
+            const grouped = {};
+            fExpenses.forEach(e => { grouped[e.category] = (grouped[e.category] || 0) + parseFloat(e.amount || 0); });
+            const sorted = Object.entries(grouped).filter(([_, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+            const fmt = v => v.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            el.innerHTML = sorted.map(([cat, amt]) => {
+                const pct = totalOut > 0 ? Math.round((amt / totalOut) * 100) : 0;
+                return `<div>
+                    <div class="flex justify-between text-[10px] mb-1">
+                        <span class="text-gray-300 font-semibold flex items-center gap-1.5"><span class="w-2 h-2 rounded bg-brand-green"></span>${cat}</span>
+                        <span class="text-gray-400">$${fmt(amt)} <span class="text-brand-green">(${pct}%)</span></span>
+                    </div>
+                    <div class="w-full bg-brand-black rounded-full h-2 border border-brand-border">
+                        <div class="bg-brand-green h-2 rounded-full transition-all duration-500" style="width:${pct}%"></div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function setFinanceFormType(type) {
+            activeFinanceFormType = type;
+            const bE = document.getElementById('btn-flow-expense'), bI = document.getElementById('btn-flow-income');
+            if (!bE) return;
+            if (type === 'expense') { bE.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition-all-custom bg-brand-green text-black'; bI.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition-all-custom text-gray-400 hover:text-white'; }
+            else                   { bI.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition-all-custom bg-brand-green text-black'; bE.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition-all-custom text-gray-400 hover:text-white'; }
+            renderFinCategoryDropdown();
+        }
+
+        function setCategoryFormType(type) {
+            activeCategoryFormType = type;
+            const bE = document.getElementById('btn-cat-expense'), bI = document.getElementById('btn-cat-income');
+            if (!bE) return;
+            if (type === 'expense') { bE.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all-custom bg-brand-green/20 text-brand-green border border-brand-green/20'; bI.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all-custom text-gray-500 hover:text-white'; }
+            else                   { bI.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all-custom bg-brand-green/20 text-brand-green border border-brand-green/20'; bE.className = 'flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all-custom text-gray-500 hover:text-white'; }
+        }
+
+        function setHistoryFilter(filter) {
+            activeHistoryFilter = filter;
+            ['all','income','expense','recurring'].forEach(f => {
+                const el = document.getElementById(`btn-hist-${f === 'all' ? 'all' : f === 'income' ? 'incomes' : f === 'expense' ? 'expenses' : 'recurring'}`);
+                if (el) el.className = `text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom ${f === filter ? 'bg-brand-green text-black' : 'text-gray-400 hover:text-white'}`;
+            });
+            renderHistoryList();
+        }
+
+        function addFinancialRecord(e) {
+            e.preventDefault();
+            const cat  = document.getElementById('finance-record-category').value;
+            const amt  = parseFloat(document.getElementById('finance-record-amount').value);
+            const date = document.getElementById('finance-record-date').value;
+            const desc = document.getElementById('finance-record-desc').value.trim();
+            const rec  = document.getElementById('finance-record-recurring').checked;
+            if (isNaN(amt) || amt <= 0) { showToast('Monto inválido', true); return; }
+            if (activeFinanceFormType === 'expense') {
+                const catObj = expenseCategories.find(c => c.name === cat);
+                if (catObj && catObj.limit > 0) {
+                    const used = fExpenses.filter(ex => ex.category === cat).reduce((a, v) => a + parseFloat(v.amount), 0);
+                    if (used + amt > catObj.limit) showToast(`⚠️ Superás el presupuesto de ${cat}`, true);
+                }
+                fExpenses.push({ id: 'e_' + Date.now(), category: cat, amount: amt, date, description: desc, type: 'expense', recurring: rec });
+                showToast(`Egreso $${amt.toFixed(2)} registrado`);
+            } else {
+                fIncomes.push({ id: 'i_' + Date.now(), category: cat, amount: amt, date, description: desc, type: 'income', recurring: rec });
+                showToast(`Ingreso $${amt.toFixed(2)} registrado`);
+            }
+            saveFinanceToStorage();
+            document.getElementById('finance-record-amount').value = '';
+            document.getElementById('finance-record-desc').value = '';
+            document.getElementById('finance-record-recurring').checked = false;
+            renderFinanzas();
+        }
+
+        function deleteFinancialRecord(id, type) {
+            if (type === 'expense') fExpenses = fExpenses.filter(e => e.id !== id);
+            else fIncomes = fIncomes.filter(i => i.id !== id);
+            saveFinanceToStorage(); renderFinanzas();
+            showToast('Movimiento eliminado');
+        }
+
+        function addFinancialCategory(e) {
+            e.preventDefault();
+            const name  = document.getElementById('finance-category-input').value.trim();
+            const limit = parseFloat(document.getElementById('finance-category-limit').value) || null;
+            if (!name) return;
+            if (activeCategoryFormType === 'expense') {
+                if (expenseCategories.some(c => c.name.toLowerCase() === name.toLowerCase())) { showToast('Ya existe esa categoría', true); return; }
+                expenseCategories.push({ name, limit });
+            } else {
+                if (incomeCategories.some(c => c.name.toLowerCase() === name.toLowerCase())) { showToast('Ya existe esa categoría', true); return; }
+                incomeCategories.push({ name, limit: null });
+            }
+            saveFinanceToStorage();
+            document.getElementById('finance-category-input').value = '';
+            document.getElementById('finance-category-limit').value = '';
+            showToast(`Categoría "${name}" añadida`);
+            renderFinanzas();
+        }
+
+        function addSavingsGoal(e) {
+            e.preventDefault();
+            const name   = document.getElementById('goal-name').value.trim();
+            const target = parseFloat(document.getElementById('goal-target').value);
+            const date   = document.getElementById('goal-date').value;
+            if (!name || isNaN(target) || target <= 0 || !date) { showToast('Datos inválidos', true); return; }
+            savingsGoals.push({ id: 'g_' + Date.now(), name, target, current: 0, date });
+            saveFinanceToStorage();
+            document.getElementById('goal-name').value = ''; document.getElementById('goal-target').value = ''; document.getElementById('goal-date').value = '';
+            showToast(`Meta "${name}" creada`); renderFinanzas();
+        }
+
+        function deleteSavingsGoal(id) {
+            savingsGoals = savingsGoals.filter(g => g.id !== id);
+            saveFinanceToStorage(); renderFinanzas(); showToast('Meta eliminada');
+        }
+
+        function openAllocateModal(id) {
+            const goal = savingsGoals.find(g => g.id === id);
+            if (!goal) return;
+            activeGoalAllocatingId = id;
+            const totalIn  = fIncomes.reduce((a, v) => a + parseFloat(v.amount || 0), 0);
+            const totalOut = fExpenses.reduce((a, v) => a + parseFloat(v.amount || 0), 0);
+            const net      = totalIn - totalOut;
+            const totalSav = savingsGoals.reduce((a, v) => a + parseFloat(v.current || 0), 0);
+            const free     = net - totalSav;
+            const fmt = v => v.toLocaleString('es-AR', { minimumFractionDigits: 2 });
+            document.getElementById('allocate-goal-title').innerText     = goal.name;
+            document.getElementById('allocate-available-box').innerText  = `$${fmt(free)}`;
+            document.getElementById('allocate-pending-box').innerText    = `$${fmt(goal.target - goal.current)}`;
+            document.getElementById('allocate-amount-input').value       = '';
+            openModal('allocate-funds-modal'); safeCreateIcons();
+        }
+
+        function closeAllocateModal() { closeModal('allocate-funds-modal'); activeGoalAllocatingId = null; }
+
+        function confirmAllocateFunds() {
+            const amt  = parseFloat(document.getElementById('allocate-amount-input').value);
+            const goal = savingsGoals.find(g => g.id === activeGoalAllocatingId);
+            if (isNaN(amt) || amt <= 0) { showToast('Monto inválido', true); return; }
+            if (!goal) return;
+            const totalIn  = fIncomes.reduce((a, v) => a + parseFloat(v.amount || 0), 0);
+            const totalOut = fExpenses.reduce((a, v) => a + parseFloat(v.amount || 0), 0);
+            const net      = totalIn - totalOut;
+            const totalSav = savingsGoals.reduce((a, v) => a + parseFloat(v.current || 0), 0);
+            const free     = net - totalSav;
+            if (amt > free)                        { showToast('Fondos insuficientes en caja', true); return; }
+            if (goal.current + amt > goal.target)  { showToast('Excede el objetivo de la meta', true); return; }
+            goal.current += amt;
+            saveFinanceToStorage(); closeAllocateModal(); renderFinanzas();
+            showToast(`$${amt.toFixed(2)} depositados en "${goal.name}"`);
+        }
+
+        function exportFinanceData() {
+            const data = JSON.stringify({ expenseCategories, incomeCategories, expenses: fExpenses, incomes: fIncomes, savingsGoals }, null, 2);
+            const a = document.createElement('a');
+            a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(data);
+            a.download = `creativa-finanzas-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            showToast('Datos financieros exportados');
+        }
+
+        function triggerFinanceImport() { document.getElementById('finance-import-file').click(); }
+
+        function importFinanceData(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const d = JSON.parse(e.target.result);
+                    if (d.expenses || d.incomes || d.expenseCategories) {
+                        fExpenses = d.expenses || []; fIncomes = d.incomes || [];
+                        expenseCategories = d.expenseCategories || defaultExpenseCategories;
+                        incomeCategories  = d.incomeCategories  || defaultIncomeCategories;
+                        savingsGoals      = d.savingsGoals      || [];
+                        saveFinanceToStorage(); renderFinanzas();
+                        showToast('Datos importados con éxito');
+                    } else { showToast('Archivo inválido', true); }
+                } catch(err) { showToast('Error al leer el archivo', true); }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearAllFinancials() {
+            if (!confirm('¿Borrar todo el historial financiero? Esta acción es irreversible.')) return;
+            fExpenses = []; fIncomes = []; savingsGoals = [];
+            expenseCategories = defaultExpenseCategories; incomeCategories = defaultIncomeCategories;
+            saveFinanceToStorage(); renderFinanzas();
+            showToast('Libro diario formateado', true);
+        }
+
         // ── MÓDULO RESUMEN ──────────────────────────────────────────────
 
         let activeResumenPeriod = 'day';
@@ -2525,6 +3219,14 @@
                     if (Array.isArray(data.projects)) projects = data.projects;
                     if (Array.isArray(data.tasks))    tasks    = data.tasks;
                     if (Array.isArray(data.ideas))    ideas    = data.ideas;
+                    if (data.finance) {
+                        if (Array.isArray(data.finance.expenseCategories)) expenseCategories = data.finance.expenseCategories;
+                        if (Array.isArray(data.finance.incomeCategories))  incomeCategories  = data.finance.incomeCategories;
+                        if (Array.isArray(data.finance.expenses))          fExpenses         = data.finance.expenses;
+                        if (Array.isArray(data.finance.incomes))           fIncomes          = data.finance.incomes;
+                        if (Array.isArray(data.finance.savingsGoals))      savingsGoals      = data.finance.savingsGoals;
+                        saveFinanceLocal();
+                    }
 
                     // Retrocompat: asegurar campo priority
                     tasks    = tasks.map(t => ({ priority: 'importante', ...t }));
@@ -2553,7 +3255,7 @@
                     let gistId = getGistId();
                     if (!gistId) gistId = await findOrCreateGist(token);
                     await gistRequest('PATCH', `https://api.github.com/gists/${gistId}`, token, {
-                        files: { [GIST_FILENAME]: { content: JSON.stringify({ projects, tasks, ideas, lastUpdated: new Date().toISOString() }, null, 2) } }
+                        files: { [GIST_FILENAME]: { content: JSON.stringify({ projects, tasks, ideas, finance: { expenseCategories, incomeCategories, expenses: fExpenses, incomes: fIncomes, savingsGoals }, lastUpdated: new Date().toISOString() }, null, 2) } }
                     });
                     setSyncStatus('synced');
                 } catch(e) {
