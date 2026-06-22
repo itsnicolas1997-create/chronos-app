@@ -206,29 +206,32 @@
             </div>
             <div class="mt-8 h-0 flex-1 overflow-y-auto">
                 <nav class="space-y-1 px-2">
-                    <button onclick="switchTab('dashboard')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="dashboard">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard-mobile" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="dashboard">
                         <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i> Dashboard
                     </button>
-                    <button onclick="switchTab('projects')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="projects">
+                    <button onclick="switchTab('projects')" id="nav-projects-mobile" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="projects">
                         <i data-lucide="folder-kanban" class="mr-3 h-5 w-5"></i> Proyectos
                     </button>
-                    <button onclick="switchTab('tasks')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="tasks">
+                    <button onclick="switchTab('tasks')" id="nav-tasks-mobile" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="tasks">
                         <i data-lucide="check-square" class="mr-3 h-5 w-5"></i> Tareas Temporales
                     </button>
-                    <button onclick="switchTab('ideas')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="ideas">
+                    <button onclick="switchTab('ideas')" id="nav-ideas-mobile" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="ideas">
                         <i data-lucide="lightbulb" class="mr-3 h-5 w-5"></i> Banco de Ideas
                     </button>
-                    <button onclick="switchTab('resumen')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="resumen">
+                    <button onclick="switchTab('resumen')" id="nav-resumen-mobile" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="resumen">
                         <i data-lucide="bar-chart-2" class="mr-3 h-5 w-5"></i> Resumen
                     </button>
-                    <button onclick="switchTab('finanzas')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="finanzas">
+                    <button onclick="switchTab('finanzas')" id="nav-finanzas-mobile" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="finanzas">
                         <i data-lucide="wallet" class="mr-3 h-5 w-5"></i> Finanzas
                     </button>
-                    <button onclick="switchTab('logistica')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="logistica">
+                    <button onclick="switchTab('logistica')" id="nav-logistica-mobile" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="logistica">
                         <i data-lucide="truck" class="mr-3 h-5 w-5"></i> Logística
                     </button>
-                    <button onclick="switchTab('pasteleria')" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="pasteleria">
+                    <button onclick="switchTab('pasteleria')" id="nav-pasteleria-mobile" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="pasteleria">
                         <i data-lucide="cake" class="mr-3 h-5 w-5"></i> Pastelería
+                    </button>
+                    <button onclick="switchTab('usuarios')" id="nav-usuarios-mobile" class="nav-btn-mobile w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1 hidden" data-tab="usuarios">
+                        <i data-lucide="users" class="mr-3 h-5 w-5"></i> Usuarios
                     </button>
                 </nav>
             </div>
@@ -268,6 +271,9 @@
                     </button>
                     <button onclick="switchTab('pasteleria')" id="nav-pasteleria" class="nav-btn w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1" data-tab="pasteleria">
                         <i data-lucide="cake" class="mr-3 h-5 w-5"></i> Pastelería
+                    </button>
+                    <button onclick="switchTab('usuarios')" id="nav-usuarios" class="nav-btn w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all-custom group mb-1 hidden" data-tab="usuarios">
+                        <i data-lucide="users" class="mr-3 h-5 w-5"></i> Usuarios
                     </button>
                 </nav>
                 <!-- Info de Perfil de Usuario -->
@@ -1051,31 +1057,22 @@
             </div><!-- /view-logistica -->
 
             <!-- ── PASTELERÍA ─────────────────────────────────────── -->
-            <div id="view-pasteleria" class="view-panel hidden space-y-5">
-                <!-- KPIs -->
-                <div class="grid grid-cols-3 gap-3">
-                    <div class="bg-brand-card border border-brand-border rounded-xl p-3 text-center">
-                        <p class="text-[9px] font-bold text-pink-400 uppercase tracking-wider mb-1">Insumos</p>
-                        <p id="pt-kpi-mats" class="text-2xl font-black text-white">0</p>
-                    </div>
-                    <div class="bg-brand-card border border-brand-border rounded-xl p-3 text-center">
-                        <p class="text-[9px] font-bold text-pink-400 uppercase tracking-wider mb-1">Estimaciones</p>
-                        <p id="pt-kpi-ests" class="text-2xl font-black text-white">0</p>
-                    </div>
-                    <div class="bg-brand-card border border-brand-border rounded-xl p-3 text-center">
-                        <p class="text-[9px] font-bold text-pink-400 uppercase tracking-wider mb-1">Recetas</p>
-                        <p id="pt-kpi-recs" class="text-2xl font-black text-white">0</p>
-                    </div>
+            <!-- Pastelería: contenido totalmente JS-renderizado para soporte de tema claro/oscuro -->
+            <div id="view-pasteleria" class="view-panel hidden"></div><!-- /view-pasteleria -->
+
+            <!-- ── GESTIÓN DE USUARIOS (solo admin) ──────────────── -->
+            <div id="view-usuarios" class="view-panel hidden space-y-5">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-base font-bold text-white flex items-center gap-2">
+                        <i data-lucide="users" class="w-5 h-5 text-brand-green"></i> Gestión de Usuarios
+                    </h2>
+                    <button onclick="appUserOpenNew()" class="flex items-center gap-2 bg-brand-green hover:bg-brand-green/80 text-black px-3 py-2 rounded-xl font-bold text-xs transition-all-custom">
+                        <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Nuevo
+                    </button>
                 </div>
-                <!-- Section tabs -->
-                <div class="flex gap-1 bg-brand-card border border-brand-border rounded-xl p-1">
-                    <button onclick="ptSetSection('insumos')"   id="pt-s-insumos"   class="flex-1 text-[10px] font-bold py-2 rounded-lg transition-all-custom bg-pink-500 text-white">Insumos</button>
-                    <button onclick="ptSetSection('estimador')" id="pt-s-estimador" class="flex-1 text-[10px] font-bold py-2 rounded-lg transition-all-custom text-gray-400 hover:text-white">Estimador</button>
-                    <button onclick="ptSetSection('recetario')" id="pt-s-recetario" class="flex-1 text-[10px] font-bold py-2 rounded-lg transition-all-custom text-gray-400 hover:text-white">Recetario</button>
-                </div>
-                <!-- Contenido dinámico -->
-                <div id="pt-section-content" class="space-y-3"></div>
-            </div><!-- /view-pasteleria -->
+                <p class="text-xs text-gray-500">Los usuarios que creés pueden acceder solo a los módulos que les habilitás. Nicolás siempre tiene acceso completo.</p>
+                <div id="app-users-list" class="space-y-3"></div>
+            </div><!-- /view-usuarios -->
 
         </main>
     </div>
@@ -1245,7 +1242,7 @@
     <div id="pt-mat-modal" class="fixed inset-0 z-[160] overflow-y-auto hidden">
         <div class="flex min-h-screen items-center justify-center px-4">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="ptCloseMatModal()"></div>
-            <div class="relative bg-[#161F28] border-2 border-pink-400/40 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10 space-y-4">
+            <div class="pt-modal-card relative bg-[#161F28] border-2 border-pink-400/40 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10 space-y-4">
                 <div class="flex justify-between items-center pb-3 border-b border-brand-border">
                     <h4 id="pt-mat-title" class="font-extrabold text-base text-white flex items-center gap-2">
                         <i data-lucide="package" class="w-5 h-5 text-pink-400"></i> Cargar Insumo
@@ -1299,7 +1296,7 @@
     <div id="pt-est-modal" class="fixed inset-0 z-[160] overflow-y-auto hidden">
         <div class="flex min-h-screen items-start justify-center px-4 py-6">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="ptCloseEstModal()"></div>
-            <div class="relative bg-[#161F28] border-2 border-pink-400/40 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10 space-y-4">
+            <div class="pt-modal-card relative bg-[#161F28] border-2 border-pink-400/40 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10 space-y-4">
                 <div class="flex justify-between items-center pb-3 border-b border-brand-border">
                     <h4 id="pt-est-title" class="font-extrabold text-base text-white flex items-center gap-2">
                         <i data-lucide="calculator" class="w-5 h-5 text-pink-400"></i> Nueva Estimación
@@ -1338,7 +1335,7 @@
     <div id="pt-rec-modal" class="fixed inset-0 z-[160] overflow-y-auto hidden">
         <div class="flex min-h-screen items-start justify-center px-4 py-6">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="ptCloseRecModal()"></div>
-            <div class="relative bg-[#161F28] border-2 border-pink-400/40 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10 space-y-4">
+            <div class="pt-modal-card relative bg-[#161F28] border-2 border-pink-400/40 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10 space-y-4">
                 <div class="flex justify-between items-center pb-3 border-b border-brand-border">
                     <h4 id="pt-rec-title" class="font-extrabold text-base text-white flex items-center gap-2">
                         <i data-lucide="book-open" class="w-5 h-5 text-pink-400"></i> Nueva Receta
@@ -1377,6 +1374,49 @@
                 </div>
                 <p id="pt-rec-error" class="text-xs text-rose-400 font-semibold hidden"></p>
                 <button onclick="ptSaveRecipe()" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-extrabold py-3.5 rounded-xl transition-all-custom">Guardar en Recetario</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: GESTIÓN DE USUARIOS (Admin) -->
+    <div id="app-user-modal" class="fixed inset-0 z-[200] overflow-y-auto hidden">
+        <div class="flex min-h-screen items-center justify-center px-4 py-6">
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="appUserCloseModal()"></div>
+            <div class="relative bg-[#161F28] border-2 border-brand-green/30 rounded-2xl p-6 w-full max-w-sm shadow-2xl z-10 space-y-4">
+                <div class="flex justify-between items-center pb-3 border-b border-brand-border">
+                    <h4 id="app-user-modal-title" class="font-extrabold text-base text-white flex items-center gap-2">
+                        <i data-lucide="user-plus" class="w-5 h-5 text-brand-green"></i> Nuevo Usuario
+                    </h4>
+                    <button onclick="appUserCloseModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <input type="hidden" id="app-user-editing-id">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Nombre de usuario *</label>
+                    <input type="text" id="app-user-username" placeholder="ej: maria" autocomplete="off" class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm font-semibold text-white focus:outline-none focus:border-brand-green/60 transition-all-custom placeholder-gray-600">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Contraseña *</label>
+                    <input type="password" id="app-user-password" placeholder="••••••••" autocomplete="new-password" class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm font-semibold text-white focus:outline-none focus:border-brand-green/60 transition-all-custom placeholder-gray-600">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Módulos habilitados</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-3 cursor-pointer p-2.5 rounded-xl border border-brand-border hover:border-brand-green/40 transition-all-custom">
+                            <input type="checkbox" id="app-perm-finanzas" class="w-4 h-4 accent-brand-green rounded">
+                            <span class="text-sm text-gray-300 font-semibold">Finanzas</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer p-2.5 rounded-xl border border-brand-border hover:border-brand-green/40 transition-all-custom">
+                            <input type="checkbox" id="app-perm-logistica" class="w-4 h-4 accent-brand-green rounded">
+                            <span class="text-sm text-gray-300 font-semibold">Logística M&amp;M</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer p-2.5 rounded-xl border border-brand-border hover:border-pink-400/40 transition-all-custom">
+                            <input type="checkbox" id="app-perm-pasteleria" class="w-4 h-4 accent-pink-500 rounded">
+                            <span class="text-sm text-gray-300 font-semibold">Pastelería <span class="text-[10px] text-pink-400 ml-1">(tema rosado)</span></span>
+                        </label>
+                    </div>
+                </div>
+                <p id="app-user-error" class="text-xs text-rose-400 font-semibold hidden"></p>
+                <button onclick="appUserSave()" class="w-full bg-brand-green hover:bg-brand-green/80 text-black font-extrabold py-3.5 rounded-xl transition-all-custom">Guardar Usuario</button>
             </div>
         </div>
     </div>
@@ -1681,7 +1721,14 @@
 
             lcLoad();
 
-            switchTab('dashboard');
+            // Determinar tab inicial según sesión
+            const _initSession = getSession();
+            if (_initSession && !_initSession.isAdmin) {
+                const firstPerm = (_initSession.perms || [])[0];
+                switchTab(firstPerm || 'pasteleria');
+            } else {
+                switchTab('dashboard');
+            }
             switchTaskPeriod('day');
 
             // Intentar cargar datos desde la nube antes de renderizar
@@ -1785,7 +1832,8 @@
                 resumen: 'Resumen de Actividad',
                 finanzas: 'Finanzas Personales',
                 logistica: 'Logística M&M',
-                pasteleria: 'Pastelería'
+                pasteleria: 'Pastelería',
+                usuarios: 'Gestión de Usuarios'
             };
             const pageTitleEl = document.getElementById('page-title');
             if (pageTitleEl) pageTitleEl.innerText = titleMap[tabId] || 'Chronos';
@@ -1812,6 +1860,8 @@
                 lcRender();
             } else if (tabId === 'pasteleria') {
                 ptRender();
+            } else if (tabId === 'usuarios') {
+                appUserRender();
             }
         }
 
@@ -2697,45 +2747,228 @@
             }
         }
 
+        // ── Multi-user session ───────────────────────────────────────────
+        const APP_USERS_KEY = 'creativa_app_users';
+
+        function getSession() {
+            try { return JSON.parse(sessionStorage.getItem('chronos_session') || 'null'); } catch { return null; }
+        }
+        function setSession(obj) { sessionStorage.setItem('chronos_session', JSON.stringify(obj)); }
+        function clearSession()  { sessionStorage.removeItem('chronos_session'); sessionStorage.removeItem('chronos_auth'); }
+
+        function getAppUsers()     { try { return JSON.parse(localStorage.getItem(APP_USERS_KEY) || '[]'); } catch { return []; } }
+        function saveAppUsers(arr) { localStorage.setItem(APP_USERS_KEY, JSON.stringify(arr)); }
+
+        function applyUserPerms(session) {
+            const isAdmin = session && session.isAdmin;
+            const perms   = (session && session.perms) || [];
+
+            // Todos los tabs conocidos (desktop tienen nav-X, mobile tienen nav-X-mobile)
+            const allTabs = ['dashboard','projects','tasks','ideas','resumen','finanzas','logistica','pasteleria','usuarios'];
+
+            if (isAdmin) {
+                // Admin ve todo excepto nav-usuarios que solo se muestra ahora
+                allTabs.forEach(t => {
+                    const d = document.getElementById('nav-' + t);
+                    const m = document.getElementById('nav-' + t + '-mobile');
+                    if (d) d.classList.remove('hidden');
+                    if (m) m.classList.remove('hidden');
+                });
+                // El botón "Usuarios" es solo admin — ya está visible arriba
+                const credBtn = document.querySelector('button[onclick="openModal(\'change-credentials-modal\')"]');
+                if (credBtn) credBtn.classList.remove('hidden');
+            } else {
+                // Ocultar todo primero
+                allTabs.forEach(t => {
+                    const d = document.getElementById('nav-' + t);
+                    const m = document.getElementById('nav-' + t + '-mobile');
+                    if (d) d.classList.add('hidden');
+                    if (m) m.classList.add('hidden');
+                });
+                // Solo mostrar los módulos habilitados
+                perms.forEach(p => {
+                    const d = document.getElementById('nav-' + p);
+                    const m = document.getElementById('nav-' + p + '-mobile');
+                    if (d) d.classList.remove('hidden');
+                    if (m) m.classList.remove('hidden');
+                });
+                // Nunca mostrar "Usuarios" para no-admin
+                const ud = document.getElementById('nav-usuarios');
+                const um = document.getElementById('nav-usuarios-mobile');
+                if (ud) ud.classList.add('hidden');
+                if (um) um.classList.add('hidden');
+                // Ocultar botón de credenciales para no-admin
+                const credBtn = document.querySelector('button[onclick="openModal(\'change-credentials-modal\')"]');
+                if (credBtn) credBtn.classList.add('hidden');
+            }
+
+            // Pastelería: tema claro para no-admin con permiso
+            _ptLightTheme = !isAdmin && perms.includes('pasteleria');
+        }
+
         function checkAuth() {
-            const isLoggedIn = sessionStorage.getItem('chronos_auth') === 'true';
+            const session = getSession();
             const loginScreen = document.getElementById('login-screen');
-            if (isLoggedIn) {
+            if (session) {
                 if (loginScreen) loginScreen.classList.add('hidden');
                 updateSidebarUser();
+                applyUserPerms(session);
             }
             safeCreateIcons();
         }
 
         function updateSidebarUser() {
-            const creds = getCredentials();
+            const session = getSession();
+            const name = session ? session.username : (getCredentials().user);
             const usernameEl = document.getElementById('sidebar-username');
-            const avatarEl = document.getElementById('sidebar-avatar');
-            if (usernameEl) usernameEl.textContent = creds.user;
-            if (avatarEl) avatarEl.textContent = creds.user.charAt(0).toUpperCase();
+            const avatarEl   = document.getElementById('sidebar-avatar');
+            if (usernameEl) usernameEl.textContent = name;
+            if (avatarEl)   avatarEl.textContent   = name.charAt(0).toUpperCase();
         }
 
         function handleLogin(event) {
             event.preventDefault();
-            const user = document.getElementById('login-user').value.trim();
-            const pass = document.getElementById('login-pass').value;
-            const creds = getCredentials();
+            const user    = document.getElementById('login-user').value.trim().toLowerCase();
+            const pass    = document.getElementById('login-pass').value;
+            const creds   = getCredentials();
             const errorEl = document.getElementById('login-error');
 
-            if (user === creds.user && pass === creds.pass) {
+            // Verificar admin
+            if (user === creds.user.toLowerCase() && pass === creds.pass) {
+                const session = { username: creds.user, isAdmin: true, perms: ['finanzas','logistica','pasteleria'] };
+                setSession(session);
                 sessionStorage.setItem('chronos_auth', 'true');
                 document.getElementById('login-screen').classList.add('hidden');
                 if (errorEl) errorEl.classList.add('hidden');
                 updateSidebarUser();
-            } else {
-                if (errorEl) errorEl.classList.remove('hidden');
-                document.getElementById('login-pass').value = '';
+                applyUserPerms(session);
+                return;
             }
+
+            // Verificar usuarios gestionados
+            const appUsers = getAppUsers();
+            const found = appUsers.find(u => u.username.toLowerCase() === user && u.password === pass);
+            if (found) {
+                const session = { username: found.username, isAdmin: false, perms: found.perms || [] };
+                setSession(session);
+                sessionStorage.setItem('chronos_auth', 'true');
+                document.getElementById('login-screen').classList.add('hidden');
+                if (errorEl) errorEl.classList.add('hidden');
+                updateSidebarUser();
+                applyUserPerms(session);
+                // Navegar al primer módulo permitido
+                const first = (found.perms || [])[0];
+                if (first) switchTab(first);
+                return;
+            }
+
+            if (errorEl) errorEl.classList.remove('hidden');
+            document.getElementById('login-pass').value = '';
         }
 
         function logout() {
-            sessionStorage.removeItem('chronos_auth');
+            clearSession();
             window.location.reload();
+        }
+
+        // ── Gestión de Usuarios (Admin panel) ───────────────────────────
+        function appUserRender() {
+            const users = getAppUsers();
+            const list  = document.getElementById('app-users-list');
+            if (!list) return;
+            if (users.length === 0) {
+                list.innerHTML = `<p class="text-xs text-gray-500 text-center py-8">No hay usuarios creados aún.</p>`;
+                return;
+            }
+            list.innerHTML = users.map(u => {
+                const permLabels = { finanzas: 'Finanzas', logistica: 'Logística', pasteleria: 'Pastelería' };
+                const permChips  = (u.perms||[]).map(p => `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-green/10 text-brand-green border border-brand-green/20">${permLabels[p]||p}</span>`).join('');
+                return `<div class="bg-brand-card border border-brand-border rounded-xl px-4 py-3 flex justify-between items-center">
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold text-white">${u.username}</p>
+                        <div class="flex flex-wrap gap-1 mt-1">${permChips || '<span class="text-[10px] text-gray-600">Sin módulos</span>'}</div>
+                    </div>
+                    <div class="flex gap-1.5 flex-shrink-0 ml-2">
+                        <button onclick="appUserOpenEdit('${u.id}')" class="p-1.5 rounded-lg text-gray-600 hover:text-brand-green hover:bg-brand-green/10 transition-all-custom"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                        <button onclick="appUserDelete('${u.id}')" class="p-1.5 rounded-lg text-gray-600 hover:text-rose-400 hover:bg-rose-400/10 transition-all-custom"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+            safeCreateIcons();
+        }
+
+        function appUserOpenNew() {
+            document.getElementById('app-user-editing-id').value = '';
+            document.getElementById('app-user-modal-title').innerHTML = '<i data-lucide="user-plus" class="w-5 h-5 text-brand-green inline mr-2"></i> Nuevo Usuario';
+            document.getElementById('app-user-username').value = '';
+            document.getElementById('app-user-password').value = '';
+            document.getElementById('app-perm-finanzas').checked  = false;
+            document.getElementById('app-perm-logistica').checked = false;
+            document.getElementById('app-perm-pasteleria').checked = false;
+            document.getElementById('app-user-error').classList.add('hidden');
+            document.getElementById('app-user-modal').classList.remove('hidden');
+            safeCreateIcons();
+            setTimeout(() => document.getElementById('app-user-username').focus(), 100);
+        }
+
+        function appUserOpenEdit(id) {
+            const users = getAppUsers();
+            const u = users.find(x => x.id === id);
+            if (!u) return;
+            document.getElementById('app-user-editing-id').value = id;
+            document.getElementById('app-user-modal-title').innerHTML = '<i data-lucide="user-cog" class="w-5 h-5 text-brand-green inline mr-2"></i> Editar Usuario';
+            document.getElementById('app-user-username').value = u.username;
+            document.getElementById('app-user-password').value = u.password;
+            document.getElementById('app-perm-finanzas').checked  = (u.perms||[]).includes('finanzas');
+            document.getElementById('app-perm-logistica').checked = (u.perms||[]).includes('logistica');
+            document.getElementById('app-perm-pasteleria').checked = (u.perms||[]).includes('pasteleria');
+            document.getElementById('app-user-error').classList.add('hidden');
+            document.getElementById('app-user-modal').classList.remove('hidden');
+            safeCreateIcons();
+        }
+
+        function appUserCloseModal() { document.getElementById('app-user-modal').classList.add('hidden'); }
+
+        function appUserSave() {
+            const editId   = document.getElementById('app-user-editing-id').value;
+            const username = document.getElementById('app-user-username').value.trim().toLowerCase();
+            const password = document.getElementById('app-user-password').value;
+            const errorEl  = document.getElementById('app-user-error');
+            const perms    = [];
+            if (document.getElementById('app-perm-finanzas').checked)   perms.push('finanzas');
+            if (document.getElementById('app-perm-logistica').checked)  perms.push('logistica');
+            if (document.getElementById('app-perm-pasteleria').checked) perms.push('pasteleria');
+
+            errorEl.classList.add('hidden');
+            if (!username) { errorEl.textContent = 'El nombre de usuario es obligatorio.'; errorEl.classList.remove('hidden'); return; }
+            if (!password) { errorEl.textContent = 'La contraseña es obligatoria.'; errorEl.classList.remove('hidden'); return; }
+
+            const creds = getCredentials();
+            if (username === creds.user.toLowerCase()) {
+                errorEl.textContent = 'Ese nombre de usuario está reservado para el administrador.';
+                errorEl.classList.remove('hidden'); return;
+            }
+
+            let users = getAppUsers();
+            const dup = users.find(u => u.username.toLowerCase() === username && u.id !== editId);
+            if (dup) { errorEl.textContent = 'Ya existe un usuario con ese nombre.'; errorEl.classList.remove('hidden'); return; }
+
+            if (editId) {
+                users = users.map(u => u.id === editId ? { ...u, username, password, perms } : u);
+            } else {
+                users.push({ id: 'u_' + Date.now(), username, password, perms });
+            }
+            saveAppUsers(users);
+            appUserCloseModal();
+            appUserRender();
+            showToast(editId ? 'Usuario actualizado.' : 'Usuario creado correctamente.');
+        }
+
+        function appUserDelete(id) {
+            if (!confirm('¿Eliminar este usuario?')) return;
+            saveAppUsers(getAppUsers().filter(u => u.id !== id));
+            appUserRender();
+            showToast('Usuario eliminado.');
         }
 
         function saveNewCredentials(event) {
@@ -3494,31 +3727,99 @@
         function ptSaveEsts(d)      { localStorage.setItem(PT_EST_KEY, JSON.stringify(d)); }
         function ptSaveRecs(d)      { localStorage.setItem(PT_REC_KEY, JSON.stringify(d)); }
 
+        // ── Tema Pastelería ──────────────────────────────────────────────
+        // _ptLightTheme = true  → usuario no-admin con permiso Pastelería (blanco/rosa)
+        // _ptLightTheme = false → admin Nico (oscuro estándar)
+
+        function ptBg()         { return _ptLightTheme ? 'bg-white'           : 'bg-brand-card'; }
+        function ptBorder()     { return _ptLightTheme ? 'border-pink-200'    : 'border-brand-border'; }
+        function ptText()       { return _ptLightTheme ? 'text-gray-800'      : 'text-white'; }
+        function ptSubtext()    { return _ptLightTheme ? 'text-gray-500'      : 'text-gray-500'; }
+        function ptTabActive()  { return _ptLightTheme ? 'bg-pink-500 text-white' : 'bg-pink-500 text-white'; }
+        function ptTabInact()   { return _ptLightTheme ? 'text-pink-400 hover:text-pink-600' : 'text-gray-400 hover:text-white'; }
+        function ptKpiBg()      { return _ptLightTheme ? 'bg-pink-50 border border-pink-200' : 'bg-brand-card border border-brand-border'; }
+        function ptKpiText()    { return _ptLightTheme ? 'text-gray-800' : 'text-white'; }
+        function ptTabBarBg()   { return _ptLightTheme ? 'bg-pink-50 border border-pink-200' : 'bg-brand-card border border-brand-border'; }
+        function ptCardBg()     { return _ptLightTheme ? 'bg-pink-50 border border-pink-200' : 'bg-brand-black border border-brand-border'; }
+        function ptCardText()   { return _ptLightTheme ? 'text-gray-800' : 'text-white'; }
+        function ptViewWrap()   { return _ptLightTheme ? 'min-h-screen bg-pink-50' : ''; }
+
+        function ptApplyModalTheme() {
+            document.querySelectorAll('.pt-modal-card').forEach(card => {
+                if (_ptLightTheme) {
+                    card.style.backgroundColor = '#fff0f6';
+                    card.style.borderColor     = '#f9a8d4';
+                    card.style.color           = '#374151';
+                } else {
+                    card.style.backgroundColor = '';
+                    card.style.borderColor     = '';
+                    card.style.color           = '';
+                }
+            });
+            const fieldSel = '.pt-modal-card input, .pt-modal-card select, .pt-modal-card textarea';
+            document.querySelectorAll(fieldSel).forEach(f => {
+                if (_ptLightTheme) {
+                    f.style.backgroundColor = '#ffffff';
+                    f.style.color           = '#111827';
+                    f.style.borderColor     = '#f9a8d4';
+                } else {
+                    f.style.backgroundColor = '';
+                    f.style.color           = '';
+                    f.style.borderColor     = '';
+                }
+            });
+            document.querySelectorAll('.pt-modal-card label, .pt-modal-card p:not(.text-rose-400)').forEach(l => {
+                if (_ptLightTheme) l.style.color = '#6b7280';
+                else               l.style.color = '';
+            });
+            document.querySelectorAll('.pt-modal-card h4').forEach(h => {
+                if (_ptLightTheme) h.style.color = '#be185d';
+                else               h.style.color = '';
+            });
+        }
+
         function ptRender() {
+            const wrap = document.getElementById('view-pasteleria');
+            if (!wrap) return;
             const mats = ptGetMaterials();
             const ests = ptGetEstimations();
             const recs = ptGetRecipes();
-            const kpiM = document.getElementById('pt-kpi-mats');
-            const kpiE = document.getElementById('pt-kpi-ests');
-            const kpiR = document.getElementById('pt-kpi-recs');
-            if (kpiM) kpiM.textContent = mats.length;
-            if (kpiE) kpiE.textContent = ests.length;
-            if (kpiR) kpiR.textContent = recs.length;
 
-            ['insumos','estimador','recetario'].forEach(s => {
-                const btn = document.getElementById('pt-s-' + s);
-                if (!btn) return;
-                btn.className = s === _ptSection
-                    ? 'flex-1 text-[10px] font-bold py-2 rounded-lg transition-all-custom bg-pink-500 text-white'
-                    : 'flex-1 text-[10px] font-bold py-2 rounded-lg transition-all-custom text-gray-400 hover:text-white';
-            });
+            const wrapCls = _ptLightTheme ? 'min-h-screen bg-pink-50' : '';
 
-            const el = document.getElementById('pt-section-content');
-            if (!el) return;
-            if (_ptSection === 'insumos')    el.innerHTML = ptHtmlInsumos(mats);
-            if (_ptSection === 'estimador')  el.innerHTML = ptHtmlEstimador(ests);
-            if (_ptSection === 'recetario')  el.innerHTML = ptHtmlRecetario(recs);
+            wrap.className = `view-panel ${wrapCls}`;
+            wrap.innerHTML = `
+                <div class="space-y-5 p-1">
+                    <!-- KPIs -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="${ptKpiBg()} rounded-xl p-3 text-center">
+                            <p class="text-[9px] font-bold text-pink-500 uppercase tracking-wider mb-1">Insumos</p>
+                            <p class="text-2xl font-black ${ptKpiText()}">${mats.length}</p>
+                        </div>
+                        <div class="${ptKpiBg()} rounded-xl p-3 text-center">
+                            <p class="text-[9px] font-bold text-pink-500 uppercase tracking-wider mb-1">Estimaciones</p>
+                            <p class="text-2xl font-black ${ptKpiText()}">${ests.length}</p>
+                        </div>
+                        <div class="${ptKpiBg()} rounded-xl p-3 text-center">
+                            <p class="text-[9px] font-bold text-pink-500 uppercase tracking-wider mb-1">Recetas</p>
+                            <p class="text-2xl font-black ${ptKpiText()}">${recs.length}</p>
+                        </div>
+                    </div>
+                    <!-- Tabs -->
+                    <div class="flex gap-1 ${ptTabBarBg()} rounded-xl p-1">
+                        <button onclick="ptSetSection('insumos')"   class="flex-1 text-[10px] font-bold py-2 rounded-lg transition-all-custom ${_ptSection==='insumos'   ? ptTabActive() : ptTabInact()}">Insumos</button>
+                        <button onclick="ptSetSection('estimador')" class="flex-1 text-[10px] font-bold py-2 rounded-lg transition-all-custom ${_ptSection==='estimador' ? ptTabActive() : ptTabInact()}">Estimador</button>
+                        <button onclick="ptSetSection('recetario')" class="flex-1 text-[10px] font-bold py-2 rounded-lg transition-all-custom ${_ptSection==='recetario' ? ptTabActive() : ptTabInact()}">Recetario</button>
+                    </div>
+                    <!-- Contenido -->
+                    <div class="space-y-3">
+                        ${_ptSection==='insumos'   ? ptHtmlInsumos(mats)   : ''}
+                        ${_ptSection==='estimador' ? ptHtmlEstimador(ests) : ''}
+                        ${_ptSection==='recetario' ? ptHtmlRecetario(recs) : ''}
+                    </div>
+                </div>`;
             safeCreateIcons();
+            ptApplyModalTheme();
         }
 
         function ptSetSection(s) { _ptSection = s; ptRender(); }
@@ -3527,15 +3828,15 @@
             const cards = mats.length === 0
                 ? `<p class="text-xs text-gray-500 text-center py-8">Sin insumos cargados.</p>`
                 : mats.map(m => `
-                    <div class="bg-brand-black border border-brand-border rounded-xl px-4 py-3 flex justify-between items-center">
+                    <div class="${ptCardBg()} rounded-xl px-4 py-3 flex justify-between items-center">
                         <div class="min-w-0">
-                            <p class="text-sm font-bold text-white">${m.name}</p>
-                            <p class="text-[10px] font-bold text-pink-400 uppercase mt-0.5">${m.category}</p>
-                            <p class="text-[11px] text-gray-500 mt-0.5">${m.quantity}${m.unit} · <span class="text-gray-300 font-semibold">$${parseFloat(m.totalCost).toFixed(2)}</span> <span class="text-pink-400">($${(m.totalCost/m.quantity).toFixed(4)}/${m.unit})</span></p>
+                            <p class="text-sm font-bold ${ptCardText()}">${m.name}</p>
+                            <p class="text-[10px] font-bold text-pink-500 uppercase mt-0.5">${m.category}</p>
+                            <p class="text-[11px] ${ptSubtext()} mt-0.5">${m.quantity}${m.unit} · <span class="font-semibold">$${parseFloat(m.totalCost).toFixed(2)}</span> <span class="text-pink-500">($${(m.totalCost/m.quantity).toFixed(4)}/${m.unit})</span></p>
                         </div>
                         <div class="flex gap-1.5 flex-shrink-0 ml-2">
-                            <button onclick="ptOpenEditMat('${m.id}')" class="p-1.5 rounded-lg text-gray-600 hover:text-pink-400 hover:bg-pink-400/10 transition-all-custom"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-                            <button onclick="ptDeleteMat('${m.id}')" class="p-1.5 rounded-lg text-gray-600 hover:text-rose-400 hover:bg-rose-400/10 transition-all-custom"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="ptOpenEditMat('${m.id}')" class="p-1.5 rounded-lg text-gray-400 hover:text-pink-500 hover:bg-pink-500/10 transition-all-custom"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="ptDeleteMat('${m.id}')" class="p-1.5 rounded-lg text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all-custom"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                         </div>
                     </div>`).join('');
             return `
@@ -3549,16 +3850,16 @@
             const cards = ests.length === 0
                 ? `<p class="text-xs text-gray-500 text-center py-8">Sin estimaciones guardadas.</p>`
                 : ests.map(e => `
-                    <div class="bg-brand-black border border-brand-border rounded-xl px-4 py-3 flex justify-between items-start">
+                    <div class="${ptCardBg()} rounded-xl px-4 py-3 flex justify-between items-start">
                         <div class="min-w-0">
-                            <p class="text-sm font-bold text-white">${e.name}</p>
-                            <p class="text-lg font-black text-pink-400">$${parseFloat(e.totalCost).toFixed(2)}</p>
-                            <p class="text-[11px] text-gray-500">${(e.ingredients||[]).length} insumos</p>
+                            <p class="text-sm font-bold ${ptCardText()}">${e.name}</p>
+                            <p class="text-lg font-black text-pink-500">$${parseFloat(e.totalCost).toFixed(2)}</p>
+                            <p class="text-[11px] ${ptSubtext()}">${(e.ingredients||[]).length} insumos</p>
                         </div>
                         <div class="flex gap-1.5 flex-shrink-0 ml-2">
-                            <button onclick="ptPrintEstimation('${e.id}')" class="p-1.5 rounded-lg text-gray-600 hover:text-blue-400 hover:bg-blue-400/10 transition-all-custom" title="PDF"><i data-lucide="printer" class="w-3.5 h-3.5"></i></button>
-                            <button onclick="ptOpenEditEst('${e.id}')" class="p-1.5 rounded-lg text-gray-600 hover:text-pink-400 hover:bg-pink-400/10 transition-all-custom"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-                            <button onclick="ptDeleteEst('${e.id}')" class="p-1.5 rounded-lg text-gray-600 hover:text-rose-400 hover:bg-rose-400/10 transition-all-custom"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="ptPrintEstimation('${e.id}')" class="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 transition-all-custom" title="PDF"><i data-lucide="printer" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="ptOpenEditEst('${e.id}')" class="p-1.5 rounded-lg text-gray-400 hover:text-pink-500 hover:bg-pink-500/10 transition-all-custom"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="ptDeleteEst('${e.id}')" class="p-1.5 rounded-lg text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all-custom"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                         </div>
                     </div>`).join('');
             return `
@@ -3572,18 +3873,18 @@
             const newBtn = `<button onclick="ptOpenNewRec()" class="flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all-custom"><i data-lucide="plus" class="w-4 h-4"></i> Cargar Receta</button>`;
             if (recs.length === 0) return newBtn + `<p class="text-xs text-gray-500 text-center py-8">Sin recetas en el recetario.</p>`;
             const cards = recs.map(r => `
-                <div class="bg-brand-black border border-brand-border rounded-xl overflow-hidden">
-                    ${r.image ? `<img src="${r.image}" alt="${r.name}" class="w-full h-32 object-cover">` : `<div class="w-full h-16 bg-brand-card flex items-center justify-center text-gray-700"><i data-lucide="image" class="w-6 h-6"></i></div>`}
+                <div class="${ptCardBg()} rounded-xl overflow-hidden">
+                    ${r.image ? `<img src="${r.image}" alt="${r.name}" class="w-full h-32 object-cover">` : `<div class="w-full h-16 ${_ptLightTheme ? 'bg-pink-100' : 'bg-brand-card'} flex items-center justify-center text-gray-400"><i data-lucide="image" class="w-6 h-6"></i></div>`}
                     <div class="px-4 py-3">
                         <div class="flex justify-between items-start">
                             <div class="min-w-0">
-                                <p class="text-sm font-bold text-white">${r.name}</p>
-                                <p class="text-[11px] text-gray-500 mt-0.5">${(r.ingredients||[]).length} ingredientes</p>
-                                ${r.instructions ? `<p class="text-[11px] text-gray-500 mt-1 line-clamp-2">${r.instructions}</p>` : ''}
+                                <p class="text-sm font-bold ${ptCardText()}">${r.name}</p>
+                                <p class="text-[11px] ${ptSubtext()} mt-0.5">${(r.ingredients||[]).length} ingredientes</p>
+                                ${r.instructions ? `<p class="text-[11px] ${ptSubtext()} mt-1 line-clamp-2">${r.instructions}</p>` : ''}
                             </div>
                             <div class="flex gap-1.5 flex-shrink-0 ml-2">
-                                <button onclick="ptOpenEditRec('${r.id}')" class="p-1.5 rounded-lg text-gray-600 hover:text-pink-400 hover:bg-pink-400/10 transition-all-custom"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-                                <button onclick="ptDeleteRec('${r.id}')" class="p-1.5 rounded-lg text-gray-600 hover:text-rose-400 hover:bg-rose-400/10 transition-all-custom"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="ptOpenEditRec('${r.id}')" class="p-1.5 rounded-lg text-gray-400 hover:text-pink-500 hover:bg-pink-500/10 transition-all-custom"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="ptDeleteRec('${r.id}')" class="p-1.5 rounded-lg text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all-custom"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                             </div>
                         </div>
                     </div>
@@ -3600,7 +3901,7 @@
             document.getElementById('pt-mat-unit').value = 'g';
             document.getElementById('pt-mat-error').classList.add('hidden');
             document.getElementById('pt-mat-modal').classList.remove('hidden');
-            safeCreateIcons();
+            safeCreateIcons(); ptApplyModalTheme();
             setTimeout(() => document.getElementById('pt-mat-name').focus(), 100);
         }
 
@@ -3616,7 +3917,7 @@
             document.getElementById('pt-mat-cost').value     = m.totalCost;
             document.getElementById('pt-mat-error').classList.add('hidden');
             document.getElementById('pt-mat-modal').classList.remove('hidden');
-            safeCreateIcons();
+            safeCreateIcons(); ptApplyModalTheme();
         }
 
         function ptCloseMatModal() { document.getElementById('pt-mat-modal').classList.add('hidden'); }
@@ -3669,7 +3970,7 @@
             ptPopulateEstSel();
             ptUpdateEstList();
             document.getElementById('pt-est-modal').classList.remove('hidden');
-            safeCreateIcons();
+            safeCreateIcons(); ptApplyModalTheme();
             setTimeout(() => document.getElementById('pt-est-name').focus(), 100);
         }
 
@@ -3684,7 +3985,7 @@
             ptPopulateEstSel();
             ptUpdateEstList();
             document.getElementById('pt-est-modal').classList.remove('hidden');
-            safeCreateIcons();
+            safeCreateIcons(); ptApplyModalTheme();
         }
 
         function ptCloseEstModal() { document.getElementById('pt-est-modal').classList.add('hidden'); }
@@ -3794,7 +4095,7 @@
             document.getElementById('pt-rec-error').classList.add('hidden');
             ptUpdateRecList();
             document.getElementById('pt-rec-modal').classList.remove('hidden');
-            safeCreateIcons();
+            safeCreateIcons(); ptApplyModalTheme();
             setTimeout(() => document.getElementById('pt-rec-name').focus(), 100);
         }
 
@@ -3818,7 +4119,7 @@
             document.getElementById('pt-rec-error').classList.add('hidden');
             ptUpdateRecList();
             document.getElementById('pt-rec-modal').classList.remove('hidden');
-            safeCreateIcons();
+            safeCreateIcons(); ptApplyModalTheme();
         }
 
         function ptCloseRecModal() { document.getElementById('pt-rec-modal').classList.add('hidden'); }
