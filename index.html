@@ -1392,7 +1392,7 @@
         </div>
     </div>
 
-    <!-- MODAL: PASTELERÍA — Presupuesto de Receta -->
+    <!-- MODAL: PASTELERÍA — Presupuesto de Receta (editor completo) -->
     <div id="pt-budget-modal" class="fixed inset-0 z-[165] overflow-y-auto hidden">
         <div class="flex min-h-screen items-start justify-center px-4 py-6">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="ptCloseBudgetModal()"></div>
@@ -1403,35 +1403,64 @@
                     </h4>
                     <button onclick="ptCloseBudgetModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
-                <!-- Nombre receta -->
+
+                <!-- Título del presupuesto (editable) -->
                 <div>
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Receta</p>
-                    <p id="pt-budget-rec-name" class="text-base font-extrabold text-white"></p>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Título del presupuesto *</label>
+                    <input type="text" id="pt-budget-title" placeholder="Ej: Torta de Cumpleaños" class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm font-semibold text-white focus:outline-none focus:border-pink-400/60 transition-all-custom placeholder-gray-600">
                 </div>
-                <!-- Ingredientes -->
+
+                <!-- Foto -->
                 <div>
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Ingredientes</p>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Foto del producto</label>
+                    <div class="border-2 border-dashed border-pink-400/30 bg-brand-black/30 rounded-xl text-center relative cursor-pointer overflow-hidden">
+                        <div id="pt-budget-photo-placeholder" class="py-4 text-pink-400/60">
+                            <i data-lucide="image" class="w-7 h-7 mx-auto mb-1"></i>
+                            <p class="text-xs font-medium">Toca para subir / cambiar foto</p>
+                        </div>
+                        <img id="pt-budget-photo-preview" src="" alt="Preview" class="hidden max-h-40 mx-auto rounded-lg object-contain p-2">
+                        <input type="file" id="pt-budget-photo-input" accept="image/*" capture="environment" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="ptBudgetHandlePhoto(this)">
+                    </div>
+                    <button id="pt-budget-photo-clear" onclick="ptBudgetClearPhoto()" class="hidden mt-1.5 text-[10px] text-rose-400 hover:text-rose-300 font-semibold transition-all-custom">✕ Quitar foto</button>
+                </div>
+
+                <!-- Ingredientes editables -->
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Ingredientes / Ítems</label>
+                    <div class="flex gap-2 mb-2">
+                        <div class="relative flex-1">
+                            <input type="text" id="pt-budget-ing-input" placeholder="Buscar o escribir ingrediente..." autocomplete="off"
+                                class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-pink-400/60 transition-all-custom placeholder-gray-600"
+                                oninput="ptBudgetIngFilter()" onfocus="ptBudgetIngFilter()" onblur="setTimeout(ptBudgetIngHide,160)" onkeydown="if(event.key==='Enter'){ptBudgetAddIng();event.preventDefault();}">
+                            <div id="pt-budget-ing-dropdown" class="hidden absolute z-[300] left-0 right-0 mt-1 bg-[#1E293B] border border-pink-400/30 rounded-xl overflow-hidden shadow-2xl max-h-40 overflow-y-auto"></div>
+                        </div>
+                        <button onclick="ptBudgetAddIng()" class="bg-pink-500 hover:bg-pink-600 text-white font-black px-4 rounded-xl transition-all-custom text-lg">+</button>
+                    </div>
                     <div id="pt-budget-ing-list" class="space-y-1 max-h-36 overflow-y-auto"></div>
                 </div>
-                <!-- Instrucciones -->
-                <div id="pt-budget-instr-wrap" class="hidden">
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Procedimiento</p>
-                    <p id="pt-budget-instr" class="text-xs text-gray-400 leading-relaxed"></p>
-                </div>
-                <!-- Detalle personalizado -->
+
+                <!-- Procedimiento / notas (editable) -->
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Detalle / Notas del presupuesto</label>
-                    <textarea id="pt-budget-detail" rows="3" placeholder="Ej: Incluye decoración, entrega a domicilio, etc." class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-400/60 transition-all-custom placeholder-gray-600 resize-none"></textarea>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Procedimiento / Notas</label>
+                    <textarea id="pt-budget-instructions" rows="3" placeholder="Pasos, aclaraciones sobre el producto..." class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-400/60 transition-all-custom placeholder-gray-600 resize-none"></textarea>
                 </div>
-                <!-- Costo / Precio -->
+
+                <!-- Detalle del presupuesto -->
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Detalle del presupuesto</label>
+                    <textarea id="pt-budget-detail" rows="2" placeholder="Ej: Incluye decoración, delivery, caja, etc." class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-400/60 transition-all-custom placeholder-gray-600 resize-none"></textarea>
+                </div>
+
+                <!-- Precio editable -->
                 <div class="border-t border-brand-border pt-3">
-                    <label class="block text-[10px] font-bold text-pink-400 uppercase tracking-wider mb-2">Precio / Costo del presupuesto</label>
+                    <label class="block text-[10px] font-bold text-pink-400 uppercase tracking-wider mb-2">Precio final del presupuesto</label>
                     <div class="flex items-center gap-2">
                         <span class="text-xl font-black text-pink-400">$</span>
                         <input type="number" id="pt-budget-price" placeholder="0.00" min="0" step="0.01"
                             class="flex-1 bg-brand-black border-2 border-pink-400/50 rounded-xl px-4 py-3 text-xl font-black text-pink-400 focus:outline-none focus:border-pink-400 transition-all-custom placeholder-gray-600">
                     </div>
                 </div>
+
                 <button onclick="ptPrintBudget()" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-extrabold py-3.5 rounded-xl transition-all-custom flex items-center justify-center gap-2">
                     <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Presupuesto
                 </button>
@@ -4341,80 +4370,191 @@
         }
 
         // ── Presupuesto de Receta ──
-        let _ptBudgetRec = null;
+        let _ptBudgetRec        = null;
+        let _ptBudgetIngredients = [];
+        let _ptBudgetPhoto       = null;
 
         function ptOpenBudgetModal(id) {
             const r = ptGetRecipes().find(x => x.id === id);
             if (!r) return;
-            _ptBudgetRec = r;
-            document.getElementById('pt-budget-rec-name').textContent = r.name;
+            _ptBudgetRec         = r;
+            _ptBudgetIngredients = [...(r.ingredients || [])];
+            _ptBudgetPhoto       = r.image || null;
 
-            const ingList = document.getElementById('pt-budget-ing-list');
-            if (ingList) {
-                ingList.innerHTML = (r.ingredients || []).length === 0
-                    ? '<p class="text-xs text-gray-600 text-center py-1">Sin ingredientes cargados.</p>'
-                    : (r.ingredients || []).map(ing => `
-                        <div class="flex items-center gap-2 px-3 py-1.5 bg-brand-black/40 border border-brand-border rounded-lg">
-                            <i data-lucide="circle-dot" class="w-3 h-3 text-pink-400 flex-shrink-0"></i>
-                            <span class="text-sm text-gray-300">${ing}</span>
-                        </div>`).join('');
-            }
+            document.getElementById('pt-budget-title').value        = r.name;
+            document.getElementById('pt-budget-instructions').value = r.instructions || '';
+            document.getElementById('pt-budget-detail').value       = '';
+            document.getElementById('pt-budget-price').value        = '';
 
-            const instrWrap = document.getElementById('pt-budget-instr-wrap');
-            const instrEl   = document.getElementById('pt-budget-instr');
-            if (r.instructions) {
-                instrEl.textContent = r.instructions;
-                instrWrap.classList.remove('hidden');
+            // Foto pre-cargada desde receta
+            const prev      = document.getElementById('pt-budget-photo-preview');
+            const placeholder = document.getElementById('pt-budget-photo-placeholder');
+            const clearBtn  = document.getElementById('pt-budget-photo-clear');
+            const fileInput = document.getElementById('pt-budget-photo-input');
+            if (fileInput) fileInput.value = '';
+            if (_ptBudgetPhoto) {
+                prev.src = _ptBudgetPhoto;
+                prev.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                clearBtn.classList.remove('hidden');
             } else {
-                instrWrap.classList.add('hidden');
+                prev.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                clearBtn.classList.add('hidden');
             }
 
-            document.getElementById('pt-budget-detail').value = '';
-            document.getElementById('pt-budget-price').value  = '';
+            ptBudgetUpdateIngList();
             document.getElementById('pt-budget-modal').classList.remove('hidden');
             safeCreateIcons(); ptApplyModalTheme();
+            setTimeout(() => document.getElementById('pt-budget-title').focus(), 100);
         }
 
         function ptCloseBudgetModal() {
             document.getElementById('pt-budget-modal').classList.add('hidden');
-            _ptBudgetRec = null;
+            ptBudgetIngHide();
+            _ptBudgetRec         = null;
+            _ptBudgetIngredients = [];
+            _ptBudgetPhoto       = null;
+        }
+
+        function ptBudgetHandlePhoto(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = new Image();
+                img.onload = function() {
+                    const maxW   = 900;
+                    const scale  = img.width > maxW ? maxW / img.width : 1;
+                    const canvas = document.createElement('canvas');
+                    canvas.width  = Math.round(img.width  * scale);
+                    canvas.height = Math.round(img.height * scale);
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    _ptBudgetPhoto = canvas.toDataURL('image/jpeg', 0.82);
+                    const prev = document.getElementById('pt-budget-photo-preview');
+                    prev.src = _ptBudgetPhoto;
+                    prev.classList.remove('hidden');
+                    document.getElementById('pt-budget-photo-placeholder').classList.add('hidden');
+                    document.getElementById('pt-budget-photo-clear').classList.remove('hidden');
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function ptBudgetClearPhoto() {
+            _ptBudgetPhoto = null;
+            document.getElementById('pt-budget-photo-preview').classList.add('hidden');
+            document.getElementById('pt-budget-photo-placeholder').classList.remove('hidden');
+            document.getElementById('pt-budget-photo-clear').classList.add('hidden');
+            const inp = document.getElementById('pt-budget-photo-input');
+            if (inp) inp.value = '';
+        }
+
+        // Autocomplete ingredientes en presupuesto
+        function ptBudgetIngFilter() {
+            const val  = (document.getElementById('pt-budget-ing-input')?.value || '').toLowerCase();
+            const mats = ptGetMaterials();
+            const dd   = document.getElementById('pt-budget-ing-dropdown');
+            if (!dd) return;
+            if (!val || mats.length === 0) { dd.classList.add('hidden'); return; }
+            const filtered = mats.filter(m => m.name.toLowerCase().includes(val));
+            if (filtered.length === 0) { dd.classList.add('hidden'); return; }
+            dd.innerHTML = filtered.map(m =>
+                `<button type="button" onmousedown="ptBudgetIngSelect('${m.name.replace(/'/g,"\\'")}','${m.unit}')"
+                    class="w-full text-left px-4 py-2.5 text-sm hover:bg-pink-500/20 transition-all-custom border-b border-brand-border/40 last:border-0">
+                    <span class="font-semibold text-white">${m.name}</span>
+                    <span class="text-gray-400 ml-2 text-[11px]">(${m.unit})</span>
+                </button>`
+            ).join('');
+            dd.classList.remove('hidden');
+        }
+
+        function ptBudgetIngSelect(name, unit) {
+            const inp = document.getElementById('pt-budget-ing-input');
+            if (inp) inp.value = name + ' (' + unit + ')';
+            ptBudgetIngHide();
+            inp?.focus();
+        }
+
+        function ptBudgetIngHide() {
+            const dd = document.getElementById('pt-budget-ing-dropdown');
+            if (dd) dd.classList.add('hidden');
+        }
+
+        function ptBudgetAddIng() {
+            const inp = document.getElementById('pt-budget-ing-input');
+            const val = inp ? inp.value.trim() : '';
+            if (!val) return;
+            _ptBudgetIngredients.push(val);
+            inp.value = '';
+            ptBudgetIngHide();
+            ptBudgetUpdateIngList();
+        }
+
+        function ptBudgetRemoveIng(idx) {
+            _ptBudgetIngredients.splice(idx, 1);
+            ptBudgetUpdateIngList();
+        }
+
+        function ptBudgetUpdateIngList() {
+            const el = document.getElementById('pt-budget-ing-list');
+            if (!el) return;
+            el.innerHTML = _ptBudgetIngredients.length === 0
+                ? '<p class="text-xs text-gray-600 text-center py-2 border border-dashed border-brand-border rounded-xl">Escribí un ingrediente y presioná +</p>'
+                : _ptBudgetIngredients.map((ing, i) => `
+                    <div class="flex justify-between items-center bg-brand-black/50 border border-brand-border rounded-lg px-3 py-2 text-sm">
+                        <span class="text-gray-300 font-medium">${ing}</span>
+                        <button onclick="ptBudgetRemoveIng(${i})" class="text-gray-600 hover:text-rose-400 p-1 rounded transition-all-custom"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </div>`).join('');
+            safeCreateIcons();
         }
 
         function ptPrintBudget() {
-            if (!_ptBudgetRec) return;
-            const price  = parseFloat(document.getElementById('pt-budget-price').value) || 0;
-            const detail = document.getElementById('pt-budget-detail').value.trim();
-            const ings   = (_ptBudgetRec.ingredients || []);
+            const title   = (document.getElementById('pt-budget-title')?.value || '').trim() || (_ptBudgetRec?.name || 'Presupuesto');
+            const price   = parseFloat(document.getElementById('pt-budget-price').value) || 0;
+            const detail  = document.getElementById('pt-budget-detail').value.trim();
+            const instr   = document.getElementById('pt-budget-instructions').value.trim();
+            const ings    = _ptBudgetIngredients;
+            const photo   = _ptBudgetPhoto;
+
+            const photoHtml = photo
+                ? `<div style="text-align:center;margin:16px 0 24px">
+                     <img src="${photo}" alt="Foto" style="max-width:100%;max-height:260px;border-radius:12px;object-fit:cover;border:2px solid #fbcfe8;">
+                   </div>`
+                : '';
+
             const win = window.open('', '_blank');
             win.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
-            <title>Presupuesto - ${_ptBudgetRec.name}</title>
+            <title>Presupuesto - ${title}</title>
             <style>
-              body{font-family:'Segoe UI',Helvetica,Arial,sans-serif;padding:40px;color:#334155;max-width:600px;margin:0 auto}
+              body{font-family:'Segoe UI',Helvetica,Arial,sans-serif;padding:40px;color:#334155;max-width:620px;margin:0 auto}
               h1{color:#ec4899;font-style:italic;font-size:28px;margin-bottom:4px;text-align:center}
               .sub{color:#64748b;font-size:13px;margin:0;text-align:center}
-              .section-title{font-size:11px;font-weight:bold;color:#db2777;text-transform:uppercase;letter-spacing:.08em;margin:20px 0 8px}
-              .rec-name{font-size:22px;font-weight:bold;color:#1e293b;border-bottom:2px solid #fbcfe8;padding-bottom:8px;margin:24px 0 12px}
+              .rec-name{font-size:22px;font-weight:bold;color:#1e293b;border-bottom:2px solid #fbcfe8;padding-bottom:8px;margin:20px 0 12px}
+              .section-title{font-size:11px;font-weight:bold;color:#db2777;text-transform:uppercase;letter-spacing:.08em;margin:18px 0 8px}
               .ing-item{padding:7px 12px;border-radius:8px;background:#fdf2f8;margin-bottom:4px;font-size:13px;color:#374151;display:flex;align-items:center;gap:8px}
               .dot{width:8px;height:8px;border-radius:50%;background:#ec4899;flex-shrink:0}
-              .detail-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;font-size:13px;color:#475569;white-space:pre-wrap;margin-top:4px}
+              .detail-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;font-size:13px;color:#475569;white-space:pre-wrap;margin-top:4px;line-height:1.6}
               .price-box{background:#fdf2f8;border:2px solid #f9a8d4;border-radius:12px;padding:20px;text-align:center;margin-top:24px}
               .price-label{font-size:12px;color:#db2777;font-weight:bold;text-transform:uppercase;letter-spacing:.08em}
-              .price-value{font-size:36px;font-weight:900;color:#ec4899;margin-top:4px}
+              .price-value{font-size:40px;font-weight:900;color:#ec4899;margin-top:4px}
               .footer{margin-top:40px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #f1f5f9;padding-top:16px}
-              @media print{@page{margin:20px}body{padding:0}}
+              @media print{@page{margin:20mm}body{padding:0}}
             </style></head><body>
             <h1>Pastelería</h1>
             <p class="sub">Presupuesto</p>
-            <div class="rec-name">${_ptBudgetRec.name}</div>
+            <div class="rec-name">${title}</div>
+            ${photoHtml}
             ${ings.length > 0 ? `
-            <div class="section-title">Ingredientes</div>
-            ${ings.map(i => `<div class="ing-item"><div class="dot"></div>${i}</div>`).join('')}` : ''}
-            ${_ptBudgetRec.instructions ? `
-            <div class="section-title">Procedimiento</div>
-            <div class="detail-box">${_ptBudgetRec.instructions}</div>` : ''}
+              <div class="section-title">Ingredientes / Ítems</div>
+              ${ings.map(i => `<div class="ing-item"><div class="dot"></div>${i}</div>`).join('')}` : ''}
+            ${instr ? `
+              <div class="section-title">Procedimiento / Notas</div>
+              <div class="detail-box">${instr}</div>` : ''}
             ${detail ? `
-            <div class="section-title">Detalle del presupuesto</div>
-            <div class="detail-box">${detail}</div>` : ''}
+              <div class="section-title">Detalle del presupuesto</div>
+              <div class="detail-box">${detail}</div>` : ''}
             <div class="price-box">
                 <div class="price-label">Precio Total</div>
                 <div class="price-value">$${price.toFixed(2)}</div>
@@ -4422,7 +4562,7 @@
             <div class="footer">Generado el ${new Date().toLocaleDateString('es-AR')}</div>
             </body></html>`);
             win.document.close();
-            setTimeout(() => win.print(), 250);
+            setTimeout(() => win.print(), 300);
         }
         // ── Fin módulo Pastelería ──
 
