@@ -1310,11 +1310,20 @@
                 <!-- Agregar insumo -->
                 <div class="border border-brand-border rounded-xl p-3 space-y-2 bg-brand-black/40">
                     <p class="text-[10px] font-bold text-pink-400 uppercase tracking-wider">Agregar insumo</p>
-                    <select id="pt-est-ing-sel" class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-pink-400/60 transition-all-custom">
-                        <option value="">— Seleccionar insumo —</option>
-                    </select>
+                    <div class="relative">
+                        <div class="relative flex items-center">
+                            <i data-lucide="search" class="absolute left-3 w-4 h-4 text-gray-400 pointer-events-none z-10"></i>
+                            <input type="text" id="pt-est-ing-search" placeholder="Buscar insumo..." autocomplete="off"
+                                class="w-full bg-brand-black border border-brand-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-pink-400/60 transition-all-custom placeholder-gray-600"
+                                oninput="ptEstFilterInsumos()" onfocus="ptEstFilterInsumos()" onblur="setTimeout(ptEstHideDropdown,160)">
+                        </div>
+                        <input type="hidden" id="pt-est-ing-sel-id">
+                        <div id="pt-est-ing-dropdown" class="hidden absolute z-[300] left-0 right-0 mt-1 bg-[#1E293B] border border-pink-400/30 rounded-xl overflow-hidden shadow-2xl max-h-44 overflow-y-auto"></div>
+                    </div>
                     <div class="flex gap-2">
-                        <input type="number" id="pt-est-ing-qty" placeholder="Cantidad" class="flex-1 bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-pink-400/60 transition-all-custom placeholder-gray-600">
+                        <input type="number" id="pt-est-ing-qty" placeholder="Cantidad" min="0" step="any"
+                            class="flex-1 bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-pink-400/60 transition-all-custom placeholder-gray-600"
+                            onkeydown="if(event.key==='Enter')ptEstAddIngredient()">
                         <button onclick="ptEstAddIngredient()" class="bg-pink-500 hover:bg-pink-600 text-white font-black px-4 rounded-xl transition-all-custom text-lg">+</button>
                     </div>
                 </div>
@@ -1362,7 +1371,12 @@
                 <div>
                     <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Ingredientes</label>
                     <div class="flex gap-2 mb-2">
-                        <input type="text" id="pt-rec-ing-input" placeholder="Ej: 200g Azúcar" class="flex-1 bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-pink-400/60 transition-all-custom placeholder-gray-600" onkeydown="if(event.key==='Enter')ptRecAddIngredient()">
+                        <div class="relative flex-1">
+                            <input type="text" id="pt-rec-ing-input" placeholder="Buscar o escribir ingrediente..." autocomplete="off"
+                                class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-pink-400/60 transition-all-custom placeholder-gray-600"
+                                oninput="ptRecIngFilter()" onfocus="ptRecIngFilter()" onblur="setTimeout(ptRecIngHide,160)" onkeydown="if(event.key==='Enter'){ptRecAddIngredient();event.preventDefault();}">
+                            <div id="pt-rec-ing-dropdown" class="hidden absolute z-[300] left-0 right-0 mt-1 bg-[#1E293B] border border-pink-400/30 rounded-xl overflow-hidden shadow-2xl max-h-40 overflow-y-auto"></div>
+                        </div>
                         <button onclick="ptRecAddIngredient()" class="bg-pink-500 hover:bg-pink-600 text-white font-black px-4 rounded-xl transition-all-custom text-lg">+</button>
                     </div>
                     <div id="pt-rec-ing-list" class="space-y-1 max-h-32 overflow-y-auto"></div>
@@ -1374,6 +1388,53 @@
                 </div>
                 <p id="pt-rec-error" class="text-xs text-rose-400 font-semibold hidden"></p>
                 <button onclick="ptSaveRecipe()" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-extrabold py-3.5 rounded-xl transition-all-custom">Guardar en Recetario</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PASTELERÍA — Presupuesto de Receta -->
+    <div id="pt-budget-modal" class="fixed inset-0 z-[165] overflow-y-auto hidden">
+        <div class="flex min-h-screen items-start justify-center px-4 py-6">
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="ptCloseBudgetModal()"></div>
+            <div class="pt-modal-card relative bg-[#161F28] border-2 border-pink-400/40 rounded-2xl p-6 w-full max-w-md shadow-2xl z-10 space-y-4">
+                <div class="flex justify-between items-center pb-3 border-b border-brand-border">
+                    <h4 class="font-extrabold text-base text-white flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-5 h-5 text-pink-400"></i> Presupuesto
+                    </h4>
+                    <button onclick="ptCloseBudgetModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <!-- Nombre receta -->
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Receta</p>
+                    <p id="pt-budget-rec-name" class="text-base font-extrabold text-white"></p>
+                </div>
+                <!-- Ingredientes -->
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Ingredientes</p>
+                    <div id="pt-budget-ing-list" class="space-y-1 max-h-36 overflow-y-auto"></div>
+                </div>
+                <!-- Instrucciones -->
+                <div id="pt-budget-instr-wrap" class="hidden">
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Procedimiento</p>
+                    <p id="pt-budget-instr" class="text-xs text-gray-400 leading-relaxed"></p>
+                </div>
+                <!-- Detalle personalizado -->
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Detalle / Notas del presupuesto</label>
+                    <textarea id="pt-budget-detail" rows="3" placeholder="Ej: Incluye decoración, entrega a domicilio, etc." class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-400/60 transition-all-custom placeholder-gray-600 resize-none"></textarea>
+                </div>
+                <!-- Costo / Precio -->
+                <div class="border-t border-brand-border pt-3">
+                    <label class="block text-[10px] font-bold text-pink-400 uppercase tracking-wider mb-2">Precio / Costo del presupuesto</label>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl font-black text-pink-400">$</span>
+                        <input type="number" id="pt-budget-price" placeholder="0.00" min="0" step="0.01"
+                            class="flex-1 bg-brand-black border-2 border-pink-400/50 rounded-xl px-4 py-3 text-xl font-black text-pink-400 focus:outline-none focus:border-pink-400 transition-all-custom placeholder-gray-600">
+                    </div>
+                </div>
+                <button onclick="ptPrintBudget()" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-extrabold py-3.5 rounded-xl transition-all-custom flex items-center justify-center gap-2">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Presupuesto
+                </button>
             </div>
         </div>
     </div>
@@ -3883,10 +3944,14 @@
                                 ${r.instructions ? `<p class="text-[11px] ${ptSubtext()} mt-1 line-clamp-2">${r.instructions}</p>` : ''}
                             </div>
                             <div class="flex gap-1.5 flex-shrink-0 ml-2">
+                                <button onclick="ptOpenBudgetModal('${r.id}')" class="p-1.5 rounded-lg text-gray-400 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all-custom" title="Presupuestar receta"><i data-lucide="file-text" class="w-3.5 h-3.5"></i></button>
                                 <button onclick="ptOpenEditRec('${r.id}')" class="p-1.5 rounded-lg text-gray-400 hover:text-pink-500 hover:bg-pink-500/10 transition-all-custom"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                                 <button onclick="ptDeleteRec('${r.id}')" class="p-1.5 rounded-lg text-gray-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all-custom"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                             </div>
                         </div>
+                        <button onclick="ptOpenBudgetModal('${r.id}')" class="mt-3 w-full flex items-center justify-center gap-2 bg-pink-500/10 hover:bg-pink-500/20 border border-pink-400/30 text-pink-400 font-bold text-xs py-2 rounded-xl transition-all-custom">
+                            <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Presupuestar Receta
+                        </button>
                     </div>
                 </div>`).join('');
             return newBtn + cards;
@@ -3954,11 +4019,48 @@
         }
 
         // ── Estimación ──
-        function ptPopulateEstSel() {
-            const sel = document.getElementById('pt-est-ing-sel');
-            if (!sel) return;
-            const mats = ptGetMaterials();
-            sel.innerHTML = '<option value="">— Seleccionar insumo —</option>' + mats.map(m => `<option value="${m.id}">${m.name} (${m.unit})</option>`).join('');
+        let _ptEstSelectedMatId = '';
+
+        function ptEstFilterInsumos() {
+            const search = (document.getElementById('pt-est-ing-search')?.value || '').toLowerCase();
+            const mats   = ptGetMaterials();
+            const dd     = document.getElementById('pt-est-ing-dropdown');
+            if (!dd) return;
+            const filtered = mats.filter(m => m.name.toLowerCase().includes(search));
+            if (filtered.length === 0 || (!search && mats.length === 0)) {
+                dd.classList.add('hidden'); return;
+            }
+            dd.innerHTML = filtered.map(m =>
+                `<button type="button" onmousedown="ptEstSelectInsumo('${m.id}','${m.name.replace(/'/g,"\\'")}','${m.unit}')"
+                    class="w-full text-left px-4 py-2.5 text-sm hover:bg-pink-500/20 transition-all-custom border-b border-brand-border/40 last:border-0">
+                    <span class="font-semibold text-white">${m.name}</span>
+                    <span class="text-gray-400 ml-2 text-[11px]">${m.unit} · $${(m.totalCost/m.quantity).toFixed(4)}/${m.unit}</span>
+                </button>`
+            ).join('');
+            dd.classList.remove('hidden');
+        }
+
+        function ptEstSelectInsumo(id, name, unit) {
+            _ptEstSelectedMatId = id;
+            const search = document.getElementById('pt-est-ing-search');
+            if (search) search.value = name + ' (' + unit + ')';
+            document.getElementById('pt-est-ing-sel-id').value = id;
+            document.getElementById('pt-est-ing-dropdown').classList.add('hidden');
+            setTimeout(() => document.getElementById('pt-est-ing-qty')?.focus(), 50);
+        }
+
+        function ptEstHideDropdown() {
+            const dd = document.getElementById('pt-est-ing-dropdown');
+            if (dd) dd.classList.add('hidden');
+        }
+
+        function ptEstClearSearch() {
+            _ptEstSelectedMatId = '';
+            const s = document.getElementById('pt-est-ing-search');
+            const h = document.getElementById('pt-est-ing-sel-id');
+            if (s) s.value = '';
+            if (h) h.value = '';
+            ptEstHideDropdown();
         }
 
         function ptOpenNewEst() {
@@ -3967,7 +4069,8 @@
             document.getElementById('pt-est-title').innerHTML = '<i data-lucide="calculator" class="w-5 h-5 text-pink-400 inline mr-2"></i> Nueva Estimación';
             document.getElementById('pt-est-name').value = '';
             document.getElementById('pt-est-error').classList.add('hidden');
-            ptPopulateEstSel();
+            ptEstClearSearch();
+            const qtyEl = document.getElementById('pt-est-ing-qty'); if (qtyEl) qtyEl.value = '';
             ptUpdateEstList();
             document.getElementById('pt-est-modal').classList.remove('hidden');
             safeCreateIcons(); ptApplyModalTheme();
@@ -3982,27 +4085,32 @@
             document.getElementById('pt-est-title').innerHTML = '<i data-lucide="pencil" class="w-5 h-5 text-pink-400 inline mr-2"></i> Editar Estimación';
             document.getElementById('pt-est-name').value = e.name;
             document.getElementById('pt-est-error').classList.add('hidden');
-            ptPopulateEstSel();
+            ptEstClearSearch();
+            const qtyEl = document.getElementById('pt-est-ing-qty'); if (qtyEl) qtyEl.value = '';
             ptUpdateEstList();
             document.getElementById('pt-est-modal').classList.remove('hidden');
             safeCreateIcons(); ptApplyModalTheme();
         }
 
-        function ptCloseEstModal() { document.getElementById('pt-est-modal').classList.add('hidden'); }
+        function ptCloseEstModal() {
+            document.getElementById('pt-est-modal').classList.add('hidden');
+            ptEstHideDropdown();
+        }
 
         function ptEstAddIngredient() {
-            const selEl = document.getElementById('pt-est-ing-sel');
+            const matId = document.getElementById('pt-est-ing-sel-id')?.value || '';
             const qtyEl = document.getElementById('pt-est-ing-qty');
-            const matId = selEl ? selEl.value : '';
             const qty   = parseFloat(qtyEl ? qtyEl.value : '');
-            if (!matId || isNaN(qty) || qty <= 0) { showToast('Seleccioná un insumo y cantidad válida', true); return; }
+            if (!matId) { showToast('Seleccioná un insumo de la lista', true); return; }
+            if (isNaN(qty) || qty <= 0) { showToast('Ingresá una cantidad válida', true); return; }
             const mat = ptGetMaterials().find(m => m.id === matId);
             if (!mat) return;
             const lineCost = (mat.totalCost / mat.quantity) * qty;
-            _ptEstIngredients.push({ matId, name:mat.name, unit:mat.unit, needed:qty, lineCost });
-            if (selEl) selEl.value = '';
+            _ptEstIngredients.push({ matId, name: mat.name, unit: mat.unit, needed: qty, lineCost });
+            ptEstClearSearch();
             if (qtyEl) qtyEl.value = '';
             ptUpdateEstList();
+            document.getElementById('pt-est-ing-search')?.focus();
         }
 
         function ptEstRemoveIng(idx) { _ptEstIngredients.splice(idx, 1); ptUpdateEstList(); }
@@ -4122,7 +4230,41 @@
             safeCreateIcons(); ptApplyModalTheme();
         }
 
-        function ptCloseRecModal() { document.getElementById('pt-rec-modal').classList.add('hidden'); }
+        function ptCloseRecModal() {
+            document.getElementById('pt-rec-modal').classList.add('hidden');
+            ptRecIngHide();
+        }
+
+        // ── Autocompletado ingredientes en Receta ──
+        function ptRecIngFilter() {
+            const val  = (document.getElementById('pt-rec-ing-input')?.value || '').toLowerCase();
+            const mats = ptGetMaterials();
+            const dd   = document.getElementById('pt-rec-ing-dropdown');
+            if (!dd) return;
+            if (!val || mats.length === 0) { dd.classList.add('hidden'); return; }
+            const filtered = mats.filter(m => m.name.toLowerCase().includes(val));
+            if (filtered.length === 0) { dd.classList.add('hidden'); return; }
+            dd.innerHTML = filtered.map(m =>
+                `<button type="button" onmousedown="ptRecIngSelect('${m.name.replace(/'/g,"\\'")}','${m.unit}')"
+                    class="w-full text-left px-4 py-2.5 text-sm hover:bg-pink-500/20 transition-all-custom border-b border-brand-border/40 last:border-0">
+                    <span class="font-semibold text-white">${m.name}</span>
+                    <span class="text-gray-400 ml-2 text-[11px]">(${m.unit})</span>
+                </button>`
+            ).join('');
+            dd.classList.remove('hidden');
+        }
+
+        function ptRecIngSelect(name, unit) {
+            const inp = document.getElementById('pt-rec-ing-input');
+            if (inp) inp.value = name + ' (' + unit + ')';
+            ptRecIngHide();
+            inp?.focus();
+        }
+
+        function ptRecIngHide() {
+            const dd = document.getElementById('pt-rec-ing-dropdown');
+            if (dd) dd.classList.add('hidden');
+        }
 
         function ptRecHandlePhoto(input) {
             const file = input.files[0];
@@ -4196,6 +4338,91 @@
             ptSaveRecs(ptGetRecipes().filter(r => r.id !== id));
             ptRender();
             showToast('Receta eliminada');
+        }
+
+        // ── Presupuesto de Receta ──
+        let _ptBudgetRec = null;
+
+        function ptOpenBudgetModal(id) {
+            const r = ptGetRecipes().find(x => x.id === id);
+            if (!r) return;
+            _ptBudgetRec = r;
+            document.getElementById('pt-budget-rec-name').textContent = r.name;
+
+            const ingList = document.getElementById('pt-budget-ing-list');
+            if (ingList) {
+                ingList.innerHTML = (r.ingredients || []).length === 0
+                    ? '<p class="text-xs text-gray-600 text-center py-1">Sin ingredientes cargados.</p>'
+                    : (r.ingredients || []).map(ing => `
+                        <div class="flex items-center gap-2 px-3 py-1.5 bg-brand-black/40 border border-brand-border rounded-lg">
+                            <i data-lucide="circle-dot" class="w-3 h-3 text-pink-400 flex-shrink-0"></i>
+                            <span class="text-sm text-gray-300">${ing}</span>
+                        </div>`).join('');
+            }
+
+            const instrWrap = document.getElementById('pt-budget-instr-wrap');
+            const instrEl   = document.getElementById('pt-budget-instr');
+            if (r.instructions) {
+                instrEl.textContent = r.instructions;
+                instrWrap.classList.remove('hidden');
+            } else {
+                instrWrap.classList.add('hidden');
+            }
+
+            document.getElementById('pt-budget-detail').value = '';
+            document.getElementById('pt-budget-price').value  = '';
+            document.getElementById('pt-budget-modal').classList.remove('hidden');
+            safeCreateIcons(); ptApplyModalTheme();
+        }
+
+        function ptCloseBudgetModal() {
+            document.getElementById('pt-budget-modal').classList.add('hidden');
+            _ptBudgetRec = null;
+        }
+
+        function ptPrintBudget() {
+            if (!_ptBudgetRec) return;
+            const price  = parseFloat(document.getElementById('pt-budget-price').value) || 0;
+            const detail = document.getElementById('pt-budget-detail').value.trim();
+            const ings   = (_ptBudgetRec.ingredients || []);
+            const win = window.open('', '_blank');
+            win.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+            <title>Presupuesto - ${_ptBudgetRec.name}</title>
+            <style>
+              body{font-family:'Segoe UI',Helvetica,Arial,sans-serif;padding:40px;color:#334155;max-width:600px;margin:0 auto}
+              h1{color:#ec4899;font-style:italic;font-size:28px;margin-bottom:4px;text-align:center}
+              .sub{color:#64748b;font-size:13px;margin:0;text-align:center}
+              .section-title{font-size:11px;font-weight:bold;color:#db2777;text-transform:uppercase;letter-spacing:.08em;margin:20px 0 8px}
+              .rec-name{font-size:22px;font-weight:bold;color:#1e293b;border-bottom:2px solid #fbcfe8;padding-bottom:8px;margin:24px 0 12px}
+              .ing-item{padding:7px 12px;border-radius:8px;background:#fdf2f8;margin-bottom:4px;font-size:13px;color:#374151;display:flex;align-items:center;gap:8px}
+              .dot{width:8px;height:8px;border-radius:50%;background:#ec4899;flex-shrink:0}
+              .detail-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;font-size:13px;color:#475569;white-space:pre-wrap;margin-top:4px}
+              .price-box{background:#fdf2f8;border:2px solid #f9a8d4;border-radius:12px;padding:20px;text-align:center;margin-top:24px}
+              .price-label{font-size:12px;color:#db2777;font-weight:bold;text-transform:uppercase;letter-spacing:.08em}
+              .price-value{font-size:36px;font-weight:900;color:#ec4899;margin-top:4px}
+              .footer{margin-top:40px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #f1f5f9;padding-top:16px}
+              @media print{@page{margin:20px}body{padding:0}}
+            </style></head><body>
+            <h1>Pastelería</h1>
+            <p class="sub">Presupuesto</p>
+            <div class="rec-name">${_ptBudgetRec.name}</div>
+            ${ings.length > 0 ? `
+            <div class="section-title">Ingredientes</div>
+            ${ings.map(i => `<div class="ing-item"><div class="dot"></div>${i}</div>`).join('')}` : ''}
+            ${_ptBudgetRec.instructions ? `
+            <div class="section-title">Procedimiento</div>
+            <div class="detail-box">${_ptBudgetRec.instructions}</div>` : ''}
+            ${detail ? `
+            <div class="section-title">Detalle del presupuesto</div>
+            <div class="detail-box">${detail}</div>` : ''}
+            <div class="price-box">
+                <div class="price-label">Precio Total</div>
+                <div class="price-value">$${price.toFixed(2)}</div>
+            </div>
+            <div class="footer">Generado el ${new Date().toLocaleDateString('es-AR')}</div>
+            </body></html>`);
+            win.document.close();
+            setTimeout(() => win.print(), 250);
         }
         // ── Fin módulo Pastelería ──
 
