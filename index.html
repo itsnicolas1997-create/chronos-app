@@ -4305,16 +4305,86 @@
         }
 
         function lcExportCSV() {
-            if (lcMovements.length === 0) { showToast('Sin movimientos para exportar', true); return; }
-            const headers = ['Fecha','Tipo','Remito','Origen','Destino','Descripción','Responsable'];
-            const rows    = lcMovements.map(m => [m.ts, m.type, m.remito, m.origen, m.destino, m.desc||'', m.nombre||'']
-                .map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
-            const csv  = [headers.join(','), ...rows].join('\n');
+            // Respetar los filtros activos (mismo criterio que lcRender)
+            const session  = getSession();
+            const isAdmin  = !session || session.isAdmin;
+            const userBranchId = (!isAdmin && session) ? (session.lcBranchId || '') : '';
+            const now      = new Date();
+            const todayStr = now.toDateString();
+
+            let exportList = [...lcMovements];
+
+            // Filtro por punto logístico
+            if (isAdmin && _lcAdminBranchId) exportList = exportList.filter(m => m.branchId === _lcAdminBranchId);
+            else if (!isAdmin && userBranchId) exportList = exportList.filter(m => m.branchId === userBranchId);
+
+            // Filtro de período
+            const weekAgo  = new Date(Date.now() - 7 * 86400000);
+            const monthAgo = new Date(now.getFullYear(), now.getMonth(), 1);
+            if      (_lcFilter === 'today') exportList = exportList.filter(m => { try { return new Date(m.ts).toDateString() === todayStr; } catch(e){ return false; } });
+            else if (_lcFilter === 'week')  exportList = exportList.filter(m => { try { return new Date(m.ts) >= weekAgo; }    catch(e){ return true; } });
+            else if (_lcFilter === 'month') exportList = exportList.filter(m => { try { return new Date(m.ts) >= monthAgo; }   catch(e){ return true; } });
+
+            // Filtro búsqueda y rango de fechas
+            if (_lcSearch)   exportList = exportList.filter(m => (m.remito||'').toLowerCase().includes(_lcSearch.toLowerCase()));
+            if (_lcDateFrom) exportList = exportList.filter(m => (m.fecha||'') >= _lcDateFrom);
+            if (_lcDateTo)   exportList = exportList.filter(m => (m.fecha||'') <= _lcDateTo);
+
+            if (exportList.length === 0) { showToast('Sin remitos para exportar con los filtros actuales', true); return; }
+
+            // Separador ; para Excel en español (Argentina)
+            const SEP = ';';
+            function esc(v) { return `"${String(v ?? '').replace(/"/g, '""')}"`; }
+
+            const headers = [
+                'Fecha',
+                'Hora',
+                'N° Remito',
+                'Tipo',
+                'Punto Logístico',
+                'Sucursal / Origen',
+                'Sucursal / Destino',
+                'Responsable',
+                'Descripción'
+            ];
+
+            const rows = exportList.map(m => {
+                const branch = lcBranches.find(b => b.id === m.branchId);
+                // Separar fecha y hora del campo ts (ej: "12/6/2025, 14:30:00")
+                let fecha = m.fecha || '';
+                let hora  = '';
+                if (m.ts) {
+                    const parts = m.ts.split(',');
+                    if (parts.length >= 2) {
+                        if (!fecha) fecha = parts[0].trim();
+                        hora = parts[1].trim();
+                    } else {
+                        if (!fecha) fecha = m.ts;
+                    }
+                }
+                return [
+                    esc(fecha),
+                    esc(hora),
+                    esc(m.remito),
+                    esc(m.type === 'ingreso' ? 'Ingreso' : 'Salida'),
+                    esc(branch ? branch.name : ''),
+                    esc(m.origen),
+                    esc(m.destino),
+                    esc(m.nombre),
+                    esc(m.desc)
+                ].join(SEP);
+            });
+
+            const dateStr = new Date().toLocaleDateString('es-AR').replace(/\//g, '-');
+            const csv  = [headers.map(h => esc(h)).join(SEP), ...rows].join('\r\n');
             const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
             const url  = URL.createObjectURL(blob);
-            const a    = document.createElement('a'); a.href = url;
-            a.download = `Logistica_${new Date().toLocaleDateString('es-AR').replace(/\//g,'-')}.csv`;
-            a.click(); URL.revokeObjectURL(url);
+            const a    = document.createElement('a');
+            a.href     = url;
+            a.download = `Logistica_Remitos_${dateStr}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast(`${exportList.length} remito${exportList.length !== 1 ? 's' : ''} exportado${exportList.length !== 1 ? 's' : ''}`);
         }
 
         /* ── Firma digital (canvas) ── */
