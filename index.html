@@ -1034,21 +1034,39 @@
                     </button>
                 </div>
 
-                <!-- Historial -->
+                <!-- Historial en dos columnas -->
                 <div class="rounded-2xl border p-4 space-y-3" style="background:#fff;border-color:#BFDBFE">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b" style="border-color:#DBEAFE">
                         <h3 class="text-xs font-bold uppercase tracking-wider flex items-center gap-2" style="color:#1E3A5F">
                             <i data-lucide="list" class="w-4 h-4" style="color:#2563EB"></i> Historial de Remitos
                         </h3>
                         <div class="flex gap-1 rounded-xl p-1 border flex-wrap" style="background:#EBF4FF;border-color:#BFDBFE">
-                            <button onclick="lcSetFilter('all')"     id="lc-filter-all"     class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Todo</button>
-                            <button onclick="lcSetFilter('today')"   id="lc-filter-today"   class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Hoy</button>
-                            <button onclick="lcSetFilter('week')"    id="lc-filter-week"    class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Semana</button>
-                            <button onclick="lcSetFilter('ingreso')" id="lc-filter-ingreso" class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Ingresos</button>
-                            <button onclick="lcSetFilter('salida')"  id="lc-filter-salida"  class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Salidas</button>
+                            <button onclick="lcSetFilter('all')"   id="lc-filter-all"   class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Todo</button>
+                            <button onclick="lcSetFilter('today')" id="lc-filter-today" class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Hoy</button>
+                            <button onclick="lcSetFilter('week')"  id="lc-filter-week"  class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Semana</button>
+                            <button onclick="lcSetFilter('month')" id="lc-filter-month" class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Mes</button>
                         </div>
                     </div>
-                    <div id="lc-history-list" class="space-y-2 max-h-[500px] overflow-y-auto pr-1"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Columna Ingresos -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-2 px-1">
+                                <i data-lucide="arrow-down-circle" class="w-4 h-4" style="color:#16A34A"></i>
+                                <span class="text-xs font-extrabold uppercase tracking-wider" style="color:#15803D">Ingresos</span>
+                                <span id="lc-col-ing-count" class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:#DCFCE7;color:#15803D">0</span>
+                            </div>
+                            <div id="lc-history-ingresos" class="space-y-2 max-h-[500px] overflow-y-auto pr-1"></div>
+                        </div>
+                        <!-- Columna Salidas -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-2 px-1">
+                                <i data-lucide="arrow-up-circle" class="w-4 h-4" style="color:#EA580C"></i>
+                                <span class="text-xs font-extrabold uppercase tracking-wider" style="color:#C2410C">Salidas</span>
+                                <span id="lc-col-sal-count" class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:#FFEDD5;color:#C2410C">0</span>
+                            </div>
+                            <div id="lc-history-salidas" class="space-y-2 max-h-[500px] overflow-y-auto pr-1"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Admin: Gestión de Puntos Logísticos -->
@@ -1278,6 +1296,111 @@
     <!-- Photo viewer lightbox (Logística) -->
     <div id="lc-photo-viewer" class="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/90 hidden" onclick="this.classList.add('hidden')">
         <img id="lc-photo-viewer-img" src="" alt="Foto remito" class="max-w-full max-h-full rounded-2xl shadow-2xl object-contain">
+    </div>
+
+    <!-- MODAL: Detalle de Remito (Logística) -->
+    <div id="lc-detail-modal" class="fixed inset-0 z-[200] overflow-y-auto hidden">
+        <div class="flex min-h-screen items-end sm:items-center justify-center px-4 py-4">
+            <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="lcCloseDetail()"></div>
+            <div class="relative rounded-2xl w-full max-w-lg shadow-2xl z-10 overflow-hidden" style="background:#fff">
+
+                <!-- Header -->
+                <div class="flex items-start justify-between p-5 border-b" style="border-color:#BFDBFE">
+                    <div>
+                        <span id="lc-det-type-chip" class="text-[10px] font-black uppercase px-3 py-1 rounded-full border">—</span>
+                        <h3 id="lc-det-title" class="text-xl font-black mt-2" style="color:#1E3A5F">Remito</h3>
+                        <p id="lc-det-branch" class="text-xs mt-0.5 font-semibold" style="color:#3B82F6"></p>
+                    </div>
+                    <button onclick="lcCloseDetail()" class="p-2 rounded-xl transition-all-custom flex-shrink-0" style="color:#93C5FD" onmouseover="this.style.background='#EBF4FF'" onmouseout="this.style.background='transparent'">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Vista de detalle (solo lectura) -->
+                <div id="lc-det-view" class="p-5 space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="rounded-xl border p-3" style="background:#EBF4FF;border-color:#BFDBFE">
+                            <p class="text-[9px] font-black uppercase tracking-wider mb-1" style="color:#5B8EC4">Fecha</p>
+                            <p id="lc-det-fecha" class="text-sm font-bold" style="color:#1E3A5F">—</p>
+                        </div>
+                        <div class="rounded-xl border p-3" style="background:#EBF4FF;border-color:#BFDBFE">
+                            <p class="text-[9px] font-black uppercase tracking-wider mb-1" style="color:#5B8EC4">Responsable</p>
+                            <p id="lc-det-nombre" class="text-sm font-bold" style="color:#1E3A5F">—</p>
+                        </div>
+                    </div>
+                    <div class="rounded-xl border p-3 flex items-center gap-3" style="background:#EBF4FF;border-color:#BFDBFE">
+                        <div class="flex-1 text-center">
+                            <p class="text-[9px] font-black uppercase tracking-wider mb-1" style="color:#5B8EC4">Origen</p>
+                            <p id="lc-det-origen" class="text-sm font-bold" style="color:#1E3A5F">—</p>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-5 h-5 flex-shrink-0" style="color:#93C5FD"></i>
+                        <div class="flex-1 text-center">
+                            <p class="text-[9px] font-black uppercase tracking-wider mb-1" style="color:#5B8EC4">Destino</p>
+                            <p id="lc-det-destino" class="text-sm font-bold" style="color:#1E3A5F">—</p>
+                        </div>
+                    </div>
+                    <div id="lc-det-desc-wrap" class="rounded-xl border p-3" style="background:#EBF4FF;border-color:#BFDBFE">
+                        <p class="text-[9px] font-black uppercase tracking-wider mb-1" style="color:#5B8EC4">Descripción</p>
+                        <p id="lc-det-desc" class="text-sm" style="color:#1E3A5F">—</p>
+                    </div>
+                    <!-- Firma -->
+                    <div id="lc-det-firma-wrap" class="hidden rounded-xl border p-3" style="background:#EBF4FF;border-color:#BFDBFE">
+                        <p class="text-[9px] font-black uppercase tracking-wider mb-2" style="color:#5B8EC4">Firma digital</p>
+                        <img id="lc-det-firma" src="" alt="Firma" class="max-h-24 w-auto rounded-lg border" style="background:#fff;border-color:#BFDBFE">
+                    </div>
+                    <!-- Foto -->
+                    <div id="lc-det-foto-wrap" class="hidden rounded-xl border p-3" style="background:#EBF4FF;border-color:#BFDBFE">
+                        <p class="text-[9px] font-black uppercase tracking-wider mb-2" style="color:#5B8EC4">Foto del remito</p>
+                        <img id="lc-det-foto" src="" alt="Foto remito" class="w-full rounded-xl border object-cover cursor-pointer" style="max-height:260px;border-color:#BFDBFE"
+                            onclick="document.getElementById('lc-photo-viewer-img').src=this.src;document.getElementById('lc-photo-viewer').classList.remove('hidden')">
+                    </div>
+                </div>
+
+                <!-- Formulario de edición (solo admin) -->
+                <div id="lc-det-edit" class="hidden p-5 space-y-3">
+                    <p class="text-[10px] font-black uppercase tracking-wider" style="color:#2563EB">Editando remito</p>
+                    <div>
+                        <label class="text-[10px] font-bold mb-1 block" style="color:#5B8EC4">N° de Remito</label>
+                        <input id="lc-edit-remito" type="text" class="w-full rounded-xl px-4 py-2.5 text-sm font-bold focus:outline-none" style="background:#EBF4FF;border:1.5px solid #93C5FD;color:#1E3A5F">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] font-bold mb-1 block" style="color:#5B8EC4">Origen</label>
+                            <select id="lc-edit-origen" class="w-full rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none" style="background:#EBF4FF;border:1.5px solid #93C5FD;color:#1E3A5F"></select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold mb-1 block" style="color:#5B8EC4">Destino</label>
+                            <select id="lc-edit-destino" class="w-full rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none" style="background:#EBF4FF;border:1.5px solid #93C5FD;color:#1E3A5F"></select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold mb-1 block" style="color:#5B8EC4">Responsable</label>
+                        <input id="lc-edit-nombre" type="text" class="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style="background:#EBF4FF;border:1.5px solid #93C5FD;color:#1E3A5F">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold mb-1 block" style="color:#5B8EC4">Descripción</label>
+                        <textarea id="lc-edit-desc" rows="2" class="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none resize-none" style="background:#EBF4FF;border:1.5px solid #93C5FD;color:#1E3A5F"></textarea>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold mb-1 block" style="color:#5B8EC4">Fecha</label>
+                        <input id="lc-edit-fecha" type="date" class="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none" style="background:#EBF4FF;border:1.5px solid #93C5FD;color:#1E3A5F">
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="p-4 border-t flex gap-2 justify-end" style="border-color:#BFDBFE;background:#F8FBFF">
+                    <button onclick="lcCloseDetail()" class="px-4 py-2 rounded-xl text-sm font-bold border transition-all-custom" style="background:#EBF4FF;border-color:#BFDBFE;color:#5B8EC4">Cerrar</button>
+                    <button id="lc-det-edit-btn" onclick="lcStartEditRemito()" class="px-5 py-2 rounded-xl text-sm font-extrabold transition-all-custom hidden" style="background:#2563EB;color:#fff">
+                        <i data-lucide="pencil" class="w-3.5 h-3.5 inline mr-1"></i> Editar
+                    </button>
+                    <button id="lc-det-save-btn" onclick="lcSaveEditRemito()" class="px-5 py-2 rounded-xl text-sm font-extrabold transition-all-custom hidden" style="background:#16A34A;color:#fff">
+                        <i data-lucide="save" class="w-3.5 h-3.5 inline mr-1"></i> Guardar cambios
+                    </button>
+                    <button id="lc-det-cancel-btn" onclick="lcCancelEditRemito()" class="px-4 py-2 rounded-xl text-sm font-bold border transition-all-custom hidden" style="background:#FEF2F2;border-color:#FECACA;color:#EF4444">Cancelar edición</button>
+                </div>
+
+            </div>
+        </div>
     </div>
 
     <!-- MODAL: PASTELERÍA — Insumo -->
@@ -3728,7 +3851,7 @@
             });
 
             // ── Filtros de historial (estilos) ──
-            ['all','today','week','ingreso','salida'].forEach(f => {
+            ['all','today','week','month'].forEach(f => {
                 const btn = document.getElementById('lc-filter-' + f);
                 if (!btn) return;
                 if (f === _lcFilter) {
@@ -3741,55 +3864,68 @@
             });
 
             // ── Filtrar historial ──
-            const weekAgo = new Date(Date.now() - 7 * 86400000);
+            const weekAgo  = new Date(Date.now() - 7  * 86400000);
+            const monthAgo = new Date(now.getFullYear(), now.getMonth(), 1);
             let list = [...baseMovements];
-            if      (_lcFilter === 'today')   list = list.filter(m => lcTsToDate(m.ts).toDateString() === todayStr);
-            else if (_lcFilter === 'week')    list = list.filter(m => lcTsToDate(m.ts) >= weekAgo);
-            else if (_lcFilter === 'ingreso') list = list.filter(m => m.type === 'ingreso');
-            else if (_lcFilter === 'salida')  list = list.filter(m => m.type === 'salida');
+            if      (_lcFilter === 'today') list = list.filter(m => lcTsToDate(m.ts).toDateString() === todayStr);
+            else if (_lcFilter === 'week')  list = list.filter(m => lcTsToDate(m.ts) >= weekAgo);
+            else if (_lcFilter === 'month') list = list.filter(m => lcTsToDate(m.ts) >= monthAgo);
 
-            // ── Historial ──
-            const container = document.getElementById('lc-history-list');
-            if (list.length === 0) {
-                container.innerHTML = '<p class="text-xs text-center py-8" style="color:#93C5FD">Sin movimientos en este período.</p>';
-            } else {
-                container.innerHTML = list.map(m => {
-                    const branch = lcBranches.find(b => b.id === m.branchId);
-                    const branchChip = branch
-                        ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="background:#DBEAFE;color:#2563EB;border-color:#93C5FD">${branch.name}</span>`
-                        : '';
-                    const isIng = m.type === 'ingreso';
-                    return `
-                    <div class="rounded-xl border overflow-hidden flex items-stretch" style="background:#fff;border-color:#BFDBFE">
-                        <div class="w-1.5 flex-shrink-0" style="background:${isIng ? '#16A34A' : '#EA580C'}"></div>
-                        <div class="flex-1 px-4 py-3 min-w-0">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-2 flex-wrap mb-1">
-                                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full border"
-                                            style="${isIng ? 'background:#DCFCE7;color:#15803D;border-color:#86EFAC' : 'background:#FFEDD5;color:#C2410C;border-color:#FED7AA'}">${m.type}</span>
-                                        ${branchChip}
-                                        <span class="text-[10px] font-mono" style="color:#93C5FD">${m.ts}</span>
-                                    </div>
-                                    <p class="text-sm font-bold truncate" style="color:#1E3A5F">Remito: ${m.remito}</p>
-                                    <div class="flex items-center gap-2 mt-1 flex-wrap">
-                                        <span class="text-[10px] px-2 py-0.5 rounded-lg border" style="background:#EBF4FF;color:#1E40AF;border-color:#BFDBFE">${m.origen}</span>
-                                        <span class="text-xs" style="color:#93C5FD">→</span>
-                                        <span class="text-[10px] px-2 py-0.5 rounded-lg border" style="background:#EBF4FF;color:#1E40AF;border-color:#BFDBFE">${m.destino}</span>
-                                    </div>
-                                    ${m.desc   ? `<p class="text-[10px] mt-1" style="color:#5B8EC4">${m.desc}</p>` : ''}
-                                    ${m.nombre ? `<p class="text-[10px] mt-0.5 flex items-center gap-1" style="color:#5B8EC4"><i data-lucide="user" class="w-3 h-3 inline"></i>${m.nombre}</p>` : ''}
-                                    ${m.foto   ? `<div class="mt-2"><img src="${m.foto}" alt="Foto remito" class="h-16 w-auto rounded-lg object-cover cursor-pointer border" style="border-color:#BFDBFE" onclick="document.getElementById('lc-photo-viewer-img').src='${m.foto}';document.getElementById('lc-photo-viewer').classList.remove('hidden')"></div>` : ''}
-                                    ${m.firma && m.firma !== 'data:,' ? `<div class="mt-2"><img src="${m.firma}" alt="Firma" class="h-10 w-auto rounded border" style="border-color:#BFDBFE;background:#EBF4FF" title="Firma digital"></div>` : ''}
+            // ── Función helper para renderizar una card de remito ──
+            const session2 = getSession();
+            const isAdmin2 = !session2 || session2.isAdmin;
+            function lcCardHtml(m) {
+                const branch = lcBranches.find(b => b.id === m.branchId);
+                const branchChip = branch
+                    ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="background:#DBEAFE;color:#2563EB;border-color:#93C5FD">${branch.name}</span>`
+                    : '';
+                const isIng = m.type === 'ingreso';
+                const deleteBtn = isAdmin2
+                    ? `<button onclick="event.stopPropagation();lcDelete('${m.id}')" class="flex-shrink-0 p-1.5 rounded-lg transition-all-custom" style="color:#93C5FD" onmouseover="this.style.color='#EF4444';this.style.background='#FEF2F2'" onmouseout="this.style.color='#93C5FD';this.style.background='transparent'"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>`
+                    : '';
+                return `
+                <div onclick="lcOpenDetail('${m.id}')" class="rounded-xl border overflow-hidden flex items-stretch cursor-pointer transition-all-custom hover:shadow-md" style="background:#fff;border-color:#BFDBFE" onmouseover="this.style.borderColor='#93C5FD'" onmouseout="this.style.borderColor='#BFDBFE'">
+                    <div class="w-1.5 flex-shrink-0" style="background:${isIng ? '#16A34A' : '#EA580C'}"></div>
+                    <div class="flex-1 px-3 py-2.5 min-w-0">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                                    ${branchChip}
+                                    <span class="text-[9px] font-mono" style="color:#93C5FD">${m.ts}</span>
                                 </div>
-                                <button onclick="lcDelete('${m.id}')" class="flex-shrink-0 p-1.5 rounded-lg transition-all-custom" style="color:#93C5FD" onmouseover="this.style.color='#EF4444';this.style.background='#FEF2F2'" onmouseout="this.style.color='#93C5FD';this.style.background='transparent'">
-                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                                </button>
+                                <p class="text-sm font-bold truncate" style="color:#1E3A5F">Remito: ${m.remito}</p>
+                                <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                                    <span class="text-[10px] px-2 py-0.5 rounded-lg border" style="background:#EBF4FF;color:#1E40AF;border-color:#BFDBFE">${m.origen}</span>
+                                    <span class="text-xs" style="color:#93C5FD">→</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-lg border" style="background:#EBF4FF;color:#1E40AF;border-color:#BFDBFE">${m.destino}</span>
+                                </div>
+                                ${m.nombre ? `<p class="text-[10px] mt-1" style="color:#5B8EC4">👤 ${m.nombre}</p>` : ''}
+                                <p class="text-[9px] mt-1 font-semibold" style="color:#93C5FD">Tocá para ver detalle →</p>
                             </div>
+                            ${deleteBtn}
                         </div>
-                    </div>`;
-                }).join('');
+                    </div>
+                </div>`;
             }
+
+            const ingList = list.filter(m => m.type === 'ingreso');
+            const salList = list.filter(m => m.type === 'salida');
+
+            const ingEl   = document.getElementById('lc-history-ingresos');
+            const salEl   = document.getElementById('lc-history-salidas');
+            const ingCnt  = document.getElementById('lc-col-ing-count');
+            const salCnt  = document.getElementById('lc-col-sal-count');
+
+            if (ingCnt) ingCnt.textContent = ingList.length;
+            if (salCnt) salCnt.textContent = salList.length;
+
+            if (ingEl) ingEl.innerHTML = ingList.length === 0
+                ? '<p class="text-xs text-center py-6" style="color:#86EFAC">Sin ingresos en este período.</p>'
+                : ingList.map(lcCardHtml).join('');
+
+            if (salEl) salEl.innerHTML = salList.length === 0
+                ? '<p class="text-xs text-center py-6" style="color:#FED7AA">Sin salidas en este período.</p>'
+                : salList.map(lcCardHtml).join('');
 
             // ── Panel admin ──
             const adminMgmt = document.getElementById('lc-admin-mgmt');
@@ -3842,6 +3978,138 @@
 
         function lcSetFilter(f)    { _lcFilter = f;    lcRender(); }
         function lcSetTimeRange(t) { _lcTimeRange = t; lcRender(); }
+
+        // ── Modal detalle de remito ──────────────────────────────────
+        let _lcDetailId = null;
+
+        function lcOpenDetail(id) {
+            const m = lcMovements.find(x => x.id === id);
+            if (!m) return;
+            _lcDetailId = id;
+
+            const session  = getSession();
+            const isAdmin  = !session || session.isAdmin;
+            const branch   = lcBranches.find(b => b.id === m.branchId);
+            const isIng    = m.type === 'ingreso';
+
+            // Chip tipo
+            const chip = document.getElementById('lc-det-type-chip');
+            if (chip) {
+                chip.textContent = m.type.toUpperCase();
+                chip.style.background   = isIng ? '#DCFCE7' : '#FFEDD5';
+                chip.style.color        = isIng ? '#15803D' : '#C2410C';
+                chip.style.borderColor  = isIng ? '#86EFAC' : '#FED7AA';
+            }
+
+            const titleEl = document.getElementById('lc-det-title');
+            if (titleEl) titleEl.textContent = `Remito: ${m.remito}`;
+
+            const branchEl = document.getElementById('lc-det-branch');
+            if (branchEl) branchEl.textContent = branch ? branch.name : '';
+
+            const fechaEl = document.getElementById('lc-det-fecha');
+            if (fechaEl) fechaEl.textContent = m.ts || '—';
+
+            const nombreEl = document.getElementById('lc-det-nombre');
+            if (nombreEl) nombreEl.textContent = m.nombre || '—';
+
+            const origenEl = document.getElementById('lc-det-origen');
+            if (origenEl) origenEl.textContent = m.origen || '—';
+
+            const destinoEl = document.getElementById('lc-det-destino');
+            if (destinoEl) destinoEl.textContent = m.destino || '—';
+
+            const descEl = document.getElementById('lc-det-desc');
+            if (descEl) descEl.textContent = m.desc || '—';
+
+            // Firma
+            const firmaWrap = document.getElementById('lc-det-firma-wrap');
+            const firmaImg  = document.getElementById('lc-det-firma');
+            if (firmaWrap && firmaImg) {
+                const hasFirma = m.firma && m.firma !== 'data:,' && m.firma.length > 20;
+                firmaWrap.classList.toggle('hidden', !hasFirma);
+                if (hasFirma) firmaImg.src = m.firma;
+            }
+
+            // Foto
+            const fotoWrap = document.getElementById('lc-det-foto-wrap');
+            const fotoImg  = document.getElementById('lc-det-foto');
+            if (fotoWrap && fotoImg) {
+                fotoWrap.classList.toggle('hidden', !m.foto);
+                if (m.foto) fotoImg.src = m.foto;
+            }
+
+            // Vista modo lectura
+            document.getElementById('lc-det-view').classList.remove('hidden');
+            document.getElementById('lc-det-edit').classList.add('hidden');
+
+            // Botones footer
+            document.getElementById('lc-det-edit-btn').classList.toggle('hidden', !isAdmin);
+            document.getElementById('lc-det-save-btn').classList.add('hidden');
+            document.getElementById('lc-det-cancel-btn').classList.add('hidden');
+
+            document.getElementById('lc-detail-modal').classList.remove('hidden');
+            safeCreateIcons();
+        }
+
+        function lcCloseDetail() {
+            _lcDetailId = null;
+            document.getElementById('lc-detail-modal').classList.add('hidden');
+        }
+
+        function lcStartEditRemito() {
+            const m = lcMovements.find(x => x.id === _lcDetailId);
+            if (!m) return;
+
+            document.getElementById('lc-edit-remito').value = m.remito || '';
+            document.getElementById('lc-edit-nombre').value = m.nombre || '';
+            document.getElementById('lc-edit-desc').value   = m.desc   || '';
+            document.getElementById('lc-edit-fecha').value  = m.fecha  || '';
+
+            const selOpts = '<option value="">— Seleccionar —</option>' +
+                lcSucursales.map(s => `<option value="${s}" ${s === m.origen  ? 'selected' : ''}>${s}</option>`).join('');
+            const destOpts = '<option value="">— Seleccionar —</option>' +
+                lcSucursales.map(s => `<option value="${s}" ${s === m.destino ? 'selected' : ''}>${s}</option>`).join('');
+            document.getElementById('lc-edit-origen').innerHTML  = selOpts;
+            document.getElementById('lc-edit-destino').innerHTML = destOpts;
+
+            // Cambiar a modo edición
+            document.getElementById('lc-det-view').classList.add('hidden');
+            document.getElementById('lc-det-edit').classList.remove('hidden');
+            document.getElementById('lc-det-edit-btn').classList.add('hidden');
+            document.getElementById('lc-det-save-btn').classList.remove('hidden');
+            document.getElementById('lc-det-cancel-btn').classList.remove('hidden');
+        }
+
+        function lcCancelEditRemito() {
+            document.getElementById('lc-det-view').classList.remove('hidden');
+            document.getElementById('lc-det-edit').classList.add('hidden');
+            document.getElementById('lc-det-edit-btn').classList.remove('hidden');
+            document.getElementById('lc-det-save-btn').classList.add('hidden');
+            document.getElementById('lc-det-cancel-btn').classList.add('hidden');
+        }
+
+        function lcSaveEditRemito() {
+            const m = lcMovements.find(x => x.id === _lcDetailId);
+            if (!m) return;
+
+            const remito = document.getElementById('lc-edit-remito').value.trim();
+            const origen = document.getElementById('lc-edit-origen').value;
+            const destino= document.getElementById('lc-edit-destino').value;
+            const desc   = document.getElementById('lc-edit-desc').value.trim();
+            const nombre = document.getElementById('lc-edit-nombre').value.trim();
+            const fecha  = document.getElementById('lc-edit-fecha').value;
+
+            if (!remito) { showToast('El número de remito es obligatorio', true); return; }
+            if (!origen)  { showToast('Seleccioná el origen', true); return; }
+            if (!destino) { showToast('Seleccioná el destino', true); return; }
+
+            Object.assign(m, { remito, origen, destino, desc, nombre, fecha });
+            lcSave();
+            lcCloseDetail();
+            lcRender();
+            showToast('Remito actualizado correctamente');
+        }
 
         function lcOpenModal(type) {
             _lcType = type;
