@@ -1243,6 +1243,12 @@
                     <button onclick="lcCloseModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
 
+                <!-- Punto logístico (visible cuando el usuario tiene > 1 asignado) -->
+                <div id="lc-field-branch-wrap" class="hidden">
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Punto Logístico *</label>
+                    <select id="lc-field-branch" class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400/60 transition-all-custom"></select>
+                </div>
+
                 <!-- N° Remito -->
                 <div>
                     <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">N° Remito *</label>
@@ -1707,11 +1713,11 @@
                                 <input type="checkbox" id="app-perm-logistica" class="w-4 h-4 accent-brand-green rounded" onchange="appUserToggleLogBranch()">
                                 <span class="text-sm text-gray-300 font-semibold">Logística</span>
                             </label>
-                            <div id="app-log-branch-wrap" class="hidden pl-4">
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Rama asignada *</label>
-                                <select id="app-log-branch-sel" class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400/60 transition-all-custom">
-                                    <option value="">— Seleccionar logística —</option>
-                                </select>
+                            <div id="app-log-branch-wrap" class="hidden pl-4 mt-2 space-y-2">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Puntos logísticos asignados</label>
+                                <div id="app-log-branch-checks" class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                                    <p class="text-xs text-gray-600 italic">Cargando puntos...</p>
+                                </div>
                             </div>
                         </div>
                         <label class="flex items-center gap-3 cursor-pointer p-2.5 rounded-xl border border-brand-border hover:border-pink-400/40 transition-all-custom">
@@ -3154,7 +3160,9 @@
             const appUsers = getAppUsers();
             const found = appUsers.find(u => u.username.toLowerCase() === user && u.password === pass);
             if (found) {
-                const session = { username: found.username, isAdmin: false, perms: found.perms || [], lcBranchId: found.lcBranchId || '' };
+                // Soportar lcBranchIds (nuevo array) y lcBranchId legacy (string)
+                const lcBranchIds = found.lcBranchIds || (found.lcBranchId ? [found.lcBranchId] : []);
+                const session = { username: found.username, isAdmin: false, perms: found.perms || [], lcBranchIds };
                 setSession(session);
                 sessionStorage.setItem('chronos_auth', 'true');
                 document.getElementById('login-screen').classList.add('hidden');
@@ -3185,13 +3193,23 @@
                 list.innerHTML = `<p class="text-xs text-gray-500 text-center py-8">No hay usuarios creados aún.</p>`;
                 return;
             }
+            const allBranches = lcGetBranches();
             list.innerHTML = users.map(u => {
                 const permLabels = { finanzas: 'Finanzas', logistica: 'Logística', pasteleria: 'Pastelería' };
                 const permChips  = (u.perms||[]).map(p => `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-green/10 text-brand-green border border-brand-green/20">${permLabels[p]||p}</span>`).join('');
+                // Chips de puntos logísticos asignados
+                const branchIds  = u.lcBranchIds || (u.lcBranchId ? [u.lcBranchId] : []);
+                const branchChips = branchIds.length > 0
+                    ? branchIds.map(id => {
+                        const b = allBranches.find(x => x.id === id);
+                        return b ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-400/10 text-cyan-400 border border-cyan-400/20">${b.name}</span>` : '';
+                    }).join('')
+                    : '';
                 return `<div class="bg-brand-card border border-brand-border rounded-xl px-4 py-3 flex justify-between items-center">
                     <div class="min-w-0">
                         <p class="text-sm font-bold text-white">${u.username}</p>
                         <div class="flex flex-wrap gap-1 mt-1">${permChips || '<span class="text-[10px] text-gray-600">Sin módulos</span>'}</div>
+                        ${branchChips ? `<div class="flex flex-wrap gap-1 mt-1">${branchChips}</div>` : ''}
                     </div>
                     <div class="flex gap-1.5 flex-shrink-0 ml-2">
                         <button onclick="appUserOpenEdit('${u.id}')" class="p-1.5 rounded-lg text-gray-600 hover:text-brand-green hover:bg-brand-green/10 transition-all-custom"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
@@ -3202,12 +3220,21 @@
             safeCreateIcons();
         }
 
-        function _lcPopulateBranchSel(selectedId) {
-            const sel = document.getElementById('app-log-branch-sel');
-            if (!sel) return;
-            const branches = lcGetBranches();
-            sel.innerHTML = '<option value="">— Seleccionar punto logístico —</option>' +
-                branches.map(b => `<option value="${b.id}" ${b.id === selectedId ? 'selected' : ''}>${b.name}</option>`).join('');
+        function _lcRenderBranchChecks(selectedIds) {
+            const checksEl  = document.getElementById('app-log-branch-checks');
+            if (!checksEl) return;
+            const branches  = lcGetBranches();
+            const selSet    = new Set(Array.isArray(selectedIds) ? selectedIds : (selectedIds ? [selectedIds] : []));
+            if (branches.length === 0) {
+                checksEl.innerHTML = '<p class="text-xs text-gray-600 italic">No hay puntos logísticos creados aún.</p>';
+                return;
+            }
+            checksEl.innerHTML = branches.map(b => `
+                <label class="flex items-center gap-2.5 cursor-pointer p-2 rounded-lg border border-brand-border hover:border-cyan-400/40 transition-all-custom">
+                    <input type="checkbox" name="lc-branch-check" value="${b.id}" ${selSet.has(b.id) ? 'checked' : ''}
+                        class="w-4 h-4 accent-cyan-400 rounded flex-shrink-0">
+                    <span class="text-xs text-gray-200 font-semibold">${b.name}</span>
+                </label>`).join('');
         }
 
         function appUserToggleLogBranch() {
@@ -3215,7 +3242,7 @@
             const wrap    = document.getElementById('app-log-branch-wrap');
             if (!wrap) return;
             wrap.classList.toggle('hidden', !checked);
-            if (checked) _lcPopulateBranchSel('');
+            if (checked) _lcRenderBranchChecks([]);
         }
 
         function appUserOpenNew() {
@@ -3228,7 +3255,7 @@
             document.getElementById('app-perm-pasteleria').checked = false;
             const wrap = document.getElementById('app-log-branch-wrap');
             if (wrap) wrap.classList.add('hidden');
-            _lcPopulateBranchSel('');
+            _lcRenderBranchChecks([]);
             document.getElementById('app-user-error').classList.add('hidden');
             document.getElementById('app-user-modal').classList.remove('hidden');
             safeCreateIcons();
@@ -3244,12 +3271,14 @@
             document.getElementById('app-user-username').value = u.username;
             document.getElementById('app-user-password').value = u.password;
             const hasLog = (u.perms||[]).includes('logistica');
-            document.getElementById('app-perm-finanzas').checked  = (u.perms||[]).includes('finanzas');
-            document.getElementById('app-perm-logistica').checked = hasLog;
+            document.getElementById('app-perm-finanzas').checked   = (u.perms||[]).includes('finanzas');
+            document.getElementById('app-perm-logistica').checked  = hasLog;
             document.getElementById('app-perm-pasteleria').checked = (u.perms||[]).includes('pasteleria');
             const wrap = document.getElementById('app-log-branch-wrap');
             if (wrap) wrap.classList.toggle('hidden', !hasLog);
-            _lcPopulateBranchSel(u.lcBranchId || '');
+            // Soportar tanto lcBranchIds (nuevo) como lcBranchId legacy (antiguo)
+            const ids = u.lcBranchIds || (u.lcBranchId ? [u.lcBranchId] : []);
+            _lcRenderBranchChecks(ids);
             document.getElementById('app-user-error').classList.add('hidden');
             document.getElementById('app-user-modal').classList.remove('hidden');
             safeCreateIcons();
@@ -3281,14 +3310,15 @@
             const dup = users.find(u => u.username.toLowerCase() === username && u.id !== editId);
             if (dup) { errorEl.textContent = 'Ya existe un usuario con ese nombre.'; errorEl.classList.remove('hidden'); return; }
 
-            const lcBranchId = (perms.includes('logistica'))
-                ? (document.getElementById('app-log-branch-sel').value || '')
-                : '';
+            // Recolectar checkboxes marcados de puntos logísticos
+            const lcBranchIds = perms.includes('logistica')
+                ? Array.from(document.querySelectorAll('input[name="lc-branch-check"]:checked')).map(el => el.value)
+                : [];
 
             if (editId) {
-                users = users.map(u => u.id === editId ? { ...u, username, password, perms, lcBranchId } : u);
+                users = users.map(u => u.id === editId ? { ...u, username, password, perms, lcBranchIds } : u);
             } else {
-                users.push({ id: 'u_' + Date.now(), username, password, perms, lcBranchId });
+                users.push({ id: 'u_' + Date.now(), username, password, perms, lcBranchIds });
             }
             saveAppUsers(users);
             appUserCloseModal();
@@ -3805,15 +3835,19 @@
         }
 
         function lcRender() {
-            const session      = getSession();
-            const isAdmin      = !session || session.isAdmin;
-            const userBranchId = (!isAdmin && session) ? (session.lcBranchId || '') : '';
-            const userBranch   = userBranchId ? lcBranches.find(b => b.id === userBranchId) : null;
+            const session       = getSession();
+            const isAdmin       = !session || session.isAdmin;
+            // Soportar lcBranchIds (array nuevo) y lcBranchId legacy
+            const userBranchIds = (!isAdmin && session)
+                ? (session.lcBranchIds || (session.lcBranchId ? [session.lcBranchId] : []))
+                : [];
+            const userBranches  = userBranchIds.map(id => lcBranches.find(b => b.id === id)).filter(Boolean);
 
             // ── Título dinámico ──
             const titleEl = document.getElementById('lc-view-title');
             const subEl   = document.getElementById('lc-view-subtitle');
-            if (titleEl) titleEl.innerHTML = `<i data-lucide="truck" class="w-5 h-5 inline-block mr-2" style="color:#2563EB"></i><span style="color:#1E3A5F">${userBranch ? userBranch.name : 'Logística'}</span>`;
+            const titleName = userBranches.length === 1 ? userBranches[0].name : 'Logística';
+            if (titleEl) titleEl.innerHTML = `<i data-lucide="truck" class="w-5 h-5 inline-block mr-2" style="color:#2563EB"></i><span style="color:#1E3A5F">${titleName}</span>`;
             if (subEl)   subEl.textContent = 'Registrá ingresos y salidas de mercadería.';
 
             // ── Banner ──
@@ -3834,14 +3868,18 @@
                                 ${branchOpts}
                             </select>
                         </div>`;
-                } else if (!isAdmin && userBranch) {
+                } else if (!isAdmin && userBranches.length > 0) {
+                    // Chips de todos los puntos asignados al usuario
+                    const chips = userBranches.map(b =>
+                        `<span class="text-xs font-bold px-3 py-1 rounded-full border" style="background:#EBF4FF;color:#1E40AF;border-color:#93C5FD">${b.name}</span>`
+                    ).join('');
                     banner.innerHTML = `
-                        <div class="rounded-xl border px-4 py-3 flex items-center gap-3" style="background:#DBEAFE;border-color:#93C5FD">
-                            <i data-lucide="truck" class="w-5 h-5 flex-shrink-0" style="color:#2563EB"></i>
-                            <div>
-                                <p class="text-sm font-extrabold" style="color:#1E3A5F">${userBranch.name}</p>
-                                <p class="text-xs" style="color:#3B82F6">Punto logístico asignado</p>
+                        <div class="rounded-xl border px-4 py-3" style="background:#DBEAFE;border-color:#93C5FD">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="truck" class="w-4 h-4 flex-shrink-0" style="color:#2563EB"></i>
+                                <span class="text-xs font-extrabold" style="color:#1E3A5F">Mis puntos logísticos</span>
                             </div>
+                            <div class="flex flex-wrap gap-2">${chips}</div>
                         </div>`;
                 } else {
                     banner.innerHTML = '';
@@ -3852,8 +3890,8 @@
             let baseMovements = [...lcMovements];
             if (isAdmin && _lcAdminBranchId) {
                 baseMovements = baseMovements.filter(m => m.branchId === _lcAdminBranchId);
-            } else if (!isAdmin && userBranchId) {
-                baseMovements = baseMovements.filter(m => m.branchId === userBranchId);
+            } else if (!isAdmin && userBranchIds.length > 0) {
+                baseMovements = baseMovements.filter(m => userBranchIds.includes(m.branchId));
             }
 
             // ── Helpers de rango de tiempo ──
@@ -4197,6 +4235,33 @@
             submitBtn.className = `w-full py-3.5 text-sm font-extrabold rounded-xl transition-all duration-200 ${isIngreso ? 'bg-cyan-500 hover:bg-cyan-600' : 'bg-amber-500 hover:bg-amber-600'} text-white`;
             submitBtn.textContent = isIngreso ? 'Guardar Ingreso' : 'Guardar Salida';
 
+            // Selector de punto logístico para usuario con varios asignados
+            const session       = getSession();
+            const isAdmin       = !session || session.isAdmin;
+            const userBranchIds = (!isAdmin && session)
+                ? (session.lcBranchIds || (session.lcBranchId ? [session.lcBranchId] : []))
+                : [];
+            const branchWrap = document.getElementById('lc-field-branch-wrap');
+            const branchSel  = document.getElementById('lc-field-branch');
+            if (branchWrap && branchSel) {
+                if (!isAdmin && userBranchIds.length > 1) {
+                    // Mostrar selector con sus puntos asignados
+                    branchSel.innerHTML = '<option value="">— Seleccioná el punto logístico —</option>' +
+                        userBranchIds.map(id => {
+                            const b = lcBranches.find(x => x.id === id);
+                            return b ? `<option value="${b.id}">${b.name}</option>` : '';
+                        }).join('');
+                    branchWrap.classList.remove('hidden');
+                } else if (!isAdmin && userBranchIds.length === 1) {
+                    // Solo uno: ocultar selector, valor ya definido
+                    branchWrap.classList.add('hidden');
+                    branchSel.innerHTML = `<option value="${userBranchIds[0]}" selected></option>`;
+                } else {
+                    branchWrap.classList.add('hidden');
+                    branchSel.innerHTML = '';
+                }
+            }
+
             const opts = '<option value="">— Seleccionar —</option>' + lcSucursales.map(s => `<option value="${s}">${s}</option>`).join('');
             const origenEl  = document.getElementById('lc-field-origen');
             const destinoEl = document.getElementById('lc-field-destino');
@@ -4236,9 +4301,22 @@
             if (origen === destino) { errEl.textContent = 'Origen y destino no pueden ser iguales.'; errEl.classList.remove('hidden'); return; }
             if (!_lcPhotoData)     { errEl.textContent = 'La foto del remito es obligatoria.';        errEl.classList.remove('hidden'); return; }
 
-            const session  = getSession();
-            const isAdmin  = !session || session.isAdmin;
-            const branchId = (!isAdmin && session) ? (session.lcBranchId || '') : (_lcAdminBranchId || '');
+            const session       = getSession();
+            const isAdmin       = !session || session.isAdmin;
+            const userBranchIds = (!isAdmin && session)
+                ? (session.lcBranchIds || (session.lcBranchId ? [session.lcBranchId] : []))
+                : [];
+            // Si tiene varios puntos, toma el seleccionado en el modal; si tiene uno, usa ese
+            const branchSelEl = document.getElementById('lc-field-branch');
+            let branchId;
+            if (isAdmin) {
+                branchId = _lcAdminBranchId || '';
+            } else if (userBranchIds.length > 1) {
+                branchId = branchSelEl ? branchSelEl.value : '';
+                if (!branchId) { errEl.textContent = 'Seleccioná el punto logístico.'; errEl.classList.remove('hidden'); return; }
+            } else {
+                branchId = userBranchIds[0] || '';
+            }
             const canvas   = document.getElementById('lc-signature-canvas');
             lcMovements.unshift({
                 id     : 'lc_' + Date.now(),
@@ -4306,9 +4384,11 @@
 
         function lcExportCSV() {
             // Respetar los filtros activos (mismo criterio que lcRender)
-            const session  = getSession();
-            const isAdmin  = !session || session.isAdmin;
-            const userBranchId = (!isAdmin && session) ? (session.lcBranchId || '') : '';
+            const session       = getSession();
+            const isAdmin       = !session || session.isAdmin;
+            const userBranchIds = (!isAdmin && session)
+                ? (session.lcBranchIds || (session.lcBranchId ? [session.lcBranchId] : []))
+                : [];
             const now      = new Date();
             const todayStr = now.toDateString();
 
@@ -4316,7 +4396,7 @@
 
             // Filtro por punto logístico
             if (isAdmin && _lcAdminBranchId) exportList = exportList.filter(m => m.branchId === _lcAdminBranchId);
-            else if (!isAdmin && userBranchId) exportList = exportList.filter(m => m.branchId === userBranchId);
+            else if (!isAdmin && userBranchIds.length > 0) exportList = exportList.filter(m => userBranchIds.includes(m.branchId));
 
             // Filtro de período
             const weekAgo  = new Date(Date.now() - 7 * 86400000);
