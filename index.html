@@ -962,119 +962,124 @@
             <!-- ══════════════════════════════════════════════════ -->
             <!-- LOGÍSTICA M&M                                    -->
             <!-- ══════════════════════════════════════════════════ -->
-            <div id="view-logistica" class="view-panel hidden space-y-6">
+            <div id="view-logistica" class="view-panel hidden">
+              <div class="min-h-screen rounded-2xl p-4 sm:p-5 space-y-5" style="background:#EBF4FF">
 
                 <!-- Header -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                        <h2 id="lc-view-title" class="text-xl font-bold text-white flex items-center gap-2">
-                            <i data-lucide="truck" class="w-5 h-5 text-cyan-400"></i> Logística
+                        <h2 id="lc-view-title" class="text-xl font-bold flex items-center gap-2" style="color:#1E3A5F">
+                            <i data-lucide="truck" class="w-5 h-5" style="color:#2563EB"></i> Logística
                         </h2>
-                        <p id="lc-view-subtitle" class="text-xs text-gray-400 mt-1">Registrá ingresos y salidas de mercadería.</p>
+                        <p id="lc-view-subtitle" class="text-xs mt-1" style="color:#5B8EC4">Registrá ingresos y salidas de mercadería.</p>
                     </div>
-                    <div class="flex gap-2 items-center flex-wrap">
-                        <button onclick="lcExportCSV()" class="flex items-center gap-1.5 text-xs bg-brand-card border border-brand-border text-gray-400 hover:text-white py-1.5 px-3 rounded-lg transition-all-custom">
-                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar CSV
-                        </button>
-                    </div>
+                    <button onclick="lcExportCSV()" class="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all-custom" style="background:#DBEAFE;border-color:#BFDBFE;color:#2563EB">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar CSV
+                    </button>
                 </div>
 
-                <!-- Banner: admin branch selector / non-admin branch info -->
+                <!-- Banner: selector de punto logístico (admin) o info del punto (usuario) -->
                 <div id="lc-branch-banner"></div>
 
-                <!-- Botones principales -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <button onclick="lcOpenModal('ingreso')"
-                        class="group relative overflow-hidden bg-cyan-400/10 hover:bg-cyan-400/20 border-2 border-cyan-400/40 hover:border-cyan-400 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-[0_0_25px_-5px_rgba(34,211,238,0.35)]">
-                        <div class="p-4 bg-cyan-400/20 rounded-2xl border border-cyan-400/30 group-hover:scale-110 transition-transform duration-200">
-                            <i data-lucide="arrow-down-circle" class="w-8 h-8 text-cyan-400"></i>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-lg font-extrabold text-white">Registrar Ingreso</p>
-                            <p class="text-xs text-cyan-400 mt-0.5">Entrada de mercadería</p>
-                        </div>
-                    </button>
-                    <button onclick="lcOpenModal('salida')"
-                        class="group relative overflow-hidden bg-amber-400/10 hover:bg-amber-400/20 border-2 border-amber-400/40 hover:border-amber-400 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 transition-all duration-200 hover:shadow-[0_0_25px_-5px_rgba(251,191,36,0.35)]">
-                        <div class="p-4 bg-amber-400/20 rounded-2xl border border-amber-400/30 group-hover:scale-110 transition-transform duration-200">
-                            <i data-lucide="arrow-up-circle" class="w-8 h-8 text-amber-400"></i>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-lg font-extrabold text-white">Registrar Salida</p>
-                            <p class="text-xs text-amber-400 mt-0.5">Salida de mercadería</p>
-                        </div>
-                    </button>
+                <!-- Tabs de rango de tiempo -->
+                <div class="rounded-2xl border p-1 flex gap-1" style="background:#DBEAFE;border-color:#BFDBFE">
+                    <button onclick="lcSetTimeRange('today')"  id="lc-tr-today"  class="flex-1 text-[11px] font-bold py-2 rounded-xl transition-all-custom">Hoy</button>
+                    <button onclick="lcSetTimeRange('week')"   id="lc-tr-week"   class="flex-1 text-[11px] font-bold py-2 rounded-xl transition-all-custom">Semana</button>
+                    <button onclick="lcSetTimeRange('month')"  id="lc-tr-month"  class="flex-1 text-[11px] font-bold py-2 rounded-xl transition-all-custom">Mes</button>
+                    <button onclick="lcSetTimeRange('year')"   id="lc-tr-year"   class="flex-1 text-[11px] font-bold py-2 rounded-xl transition-all-custom">Año</button>
                 </div>
 
                 <!-- KPI Cards -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border">
-                        <p class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Ingresos</p>
-                        <p id="lc-kpi-ingresos" class="text-3xl font-black text-white mt-1">0</p>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="rounded-2xl border p-4 text-center" style="background:#fff;border-color:#BFDBFE">
+                        <p class="text-[10px] font-black uppercase tracking-wider" style="color:#16A34A">Ingresos</p>
+                        <p id="lc-kpi-ingresos" class="text-3xl font-black mt-1" style="color:#15803D">0</p>
+                        <p class="text-[9px] mt-0.5" style="color:#86BFAE" id="lc-kpi-ing-label">en el período</p>
                     </div>
-                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border">
-                        <p class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Salidas</p>
-                        <p id="lc-kpi-salidas" class="text-3xl font-black text-white mt-1">0</p>
+                    <div class="rounded-2xl border p-4 text-center" style="background:#fff;border-color:#BFDBFE">
+                        <p class="text-[10px] font-black uppercase tracking-wider" style="color:#EA580C">Salidas</p>
+                        <p id="lc-kpi-salidas" class="text-3xl font-black mt-1" style="color:#C2410C">0</p>
+                        <p class="text-[9px] mt-0.5" style="color:#C4A486" id="lc-kpi-sal-label">en el período</p>
                     </div>
-                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total</p>
-                        <p id="lc-kpi-total" class="text-3xl font-black text-white mt-1">0</p>
-                    </div>
-                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border">
-                        <p class="text-[10px] font-bold text-brand-green uppercase tracking-wider">Hoy</p>
-                        <p id="lc-kpi-hoy" class="text-3xl font-black text-white mt-1">0</p>
+                    <div class="rounded-2xl border p-4 text-center" style="background:#fff;border-color:#BFDBFE">
+                        <p class="text-[10px] font-black uppercase tracking-wider" style="color:#2563EB">Total</p>
+                        <p id="lc-kpi-total" class="text-3xl font-black mt-1" style="color:#1E3A5F">0</p>
+                        <p class="text-[9px] mt-0.5" style="color:#5B8EC4" id="lc-kpi-tot-label">remitos</p>
                     </div>
                 </div>
 
+                <!-- Botones principales -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button onclick="lcOpenModal('ingreso')"
+                        class="group rounded-2xl border-2 p-5 flex flex-col items-center justify-center gap-2 transition-all duration-200"
+                        style="background:#F0FDF4;border-color:#86EFAC">
+                        <div class="p-3 rounded-2xl border group-hover:scale-110 transition-transform duration-200" style="background:#DCFCE7;border-color:#BBF7D0">
+                            <i data-lucide="arrow-down-circle" class="w-8 h-8" style="color:#16A34A"></i>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-base font-extrabold" style="color:#15803D">Registrar Ingreso</p>
+                            <p class="text-xs mt-0.5" style="color:#4ADE80">Entrada de mercadería</p>
+                        </div>
+                    </button>
+                    <button onclick="lcOpenModal('salida')"
+                        class="group rounded-2xl border-2 p-5 flex flex-col items-center justify-center gap-2 transition-all duration-200"
+                        style="background:#FFF7ED;border-color:#FED7AA">
+                        <div class="p-3 rounded-2xl border group-hover:scale-110 transition-transform duration-200" style="background:#FFEDD5;border-color:#FED7AA">
+                            <i data-lucide="arrow-up-circle" class="w-8 h-8" style="color:#EA580C"></i>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-base font-extrabold" style="color:#C2410C">Registrar Salida</p>
+                            <p class="text-xs mt-0.5" style="color:#FB923C">Salida de mercadería</p>
+                        </div>
+                    </button>
+                </div>
+
                 <!-- Historial -->
-                <div class="bg-brand-card p-5 rounded-2xl border border-brand-border space-y-4">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-brand-border">
-                        <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                            <i data-lucide="list" class="w-4 h-4 text-cyan-400"></i> Historial de Remitos
+                <div class="rounded-2xl border p-4 space-y-3" style="background:#fff;border-color:#BFDBFE">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b" style="border-color:#DBEAFE">
+                        <h3 class="text-xs font-bold uppercase tracking-wider flex items-center gap-2" style="color:#1E3A5F">
+                            <i data-lucide="list" class="w-4 h-4" style="color:#2563EB"></i> Historial de Remitos
                         </h3>
-                        <div class="flex gap-1 bg-brand-black p-1 rounded-xl border border-brand-border flex-wrap">
-                            <button onclick="lcSetFilter('all')"    id="lc-filter-all"    class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom bg-brand-green text-black">Todo</button>
-                            <button onclick="lcSetFilter('today')"  id="lc-filter-today"  class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom text-gray-400 hover:text-white">Hoy</button>
-                            <button onclick="lcSetFilter('week')"   id="lc-filter-week"   class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom text-gray-400 hover:text-white">Semana</button>
-                            <button onclick="lcSetFilter('ingreso')" id="lc-filter-ingreso" class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom text-gray-400 hover:text-white">Ingresos</button>
-                            <button onclick="lcSetFilter('salida')"  id="lc-filter-salida"  class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom text-gray-400 hover:text-white">Salidas</button>
+                        <div class="flex gap-1 rounded-xl p-1 border flex-wrap" style="background:#EBF4FF;border-color:#BFDBFE">
+                            <button onclick="lcSetFilter('all')"     id="lc-filter-all"     class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Todo</button>
+                            <button onclick="lcSetFilter('today')"   id="lc-filter-today"   class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Hoy</button>
+                            <button onclick="lcSetFilter('week')"    id="lc-filter-week"    class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Semana</button>
+                            <button onclick="lcSetFilter('ingreso')" id="lc-filter-ingreso" class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Ingresos</button>
+                            <button onclick="lcSetFilter('salida')"  id="lc-filter-salida"  class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Salidas</button>
                         </div>
                     </div>
                     <div id="lc-history-list" class="space-y-2 max-h-[500px] overflow-y-auto pr-1"></div>
                 </div>
 
-                <!-- Admin: Gestión de Logísticas (ramas) + Puntos -->
+                <!-- Admin: Gestión de Puntos Logísticos -->
                 <div id="lc-admin-mgmt" class="hidden space-y-4">
-                    <!-- Nueva Logística -->
-                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border space-y-4">
-                        <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                            <i data-lucide="git-branch" class="w-4 h-4 text-cyan-400"></i> Administrar Logísticas
+                    <!-- Crear punto logístico -->
+                    <div class="rounded-2xl border p-4 space-y-3" style="background:#fff;border-color:#BFDBFE">
+                        <h3 class="text-xs font-bold uppercase tracking-wider flex items-center gap-2" style="color:#1E3A5F">
+                            <i data-lucide="git-branch" class="w-4 h-4" style="color:#2563EB"></i> Puntos Logísticos
                         </h3>
-                        <div class="grid grid-cols-1 gap-2">
-                            <input id="lc-new-branch-name" type="text" placeholder="Nombre (ej: Logística Resistencia)"
-                                class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400/60 transition-all-custom placeholder-gray-600">
-                            <div class="grid grid-cols-2 gap-2">
-                                <input id="lc-new-branch-origin" type="text" placeholder="Origen (ej: Resistencia)"
-                                    class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400/60 transition-all-custom placeholder-gray-600">
-                                <input id="lc-new-branch-dest" type="text" placeholder="Destino (ej: Corrientes)"
-                                    class="w-full bg-brand-black border border-brand-border rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400/60 transition-all-custom placeholder-gray-600">
-                            </div>
-                            <button onclick="lcAddBranch()" class="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-400 px-4 py-2.5 rounded-xl transition-all-custom font-bold text-sm flex items-center justify-center gap-2">
-                                <i data-lucide="plus" class="w-4 h-4"></i> Crear Logística
+                        <div class="flex gap-2">
+                            <input id="lc-new-branch-name" type="text" placeholder="Ej: Logística Resistencia"
+                                class="flex-1 rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-all-custom"
+                                style="background:#EBF4FF;border:1.5px solid #BFDBFE;color:#1E3A5F"
+                                onkeydown="if(event.key==='Enter')lcAddBranch()">
+                            <button onclick="lcAddBranch()" class="flex items-center gap-1.5 font-bold text-sm px-4 py-2.5 rounded-xl transition-all-custom" style="background:#2563EB;color:#fff">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Agregar
                             </button>
                         </div>
                         <div id="lc-branches-list" class="space-y-2"></div>
                     </div>
                     <!-- Puntos de origen/destino -->
-                    <div class="bg-brand-card p-5 rounded-2xl border border-brand-border space-y-4">
-                        <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                            <i data-lucide="map-pin" class="w-4 h-4 text-cyan-400"></i> Puntos (Origen / Destino)
+                    <div class="rounded-2xl border p-4 space-y-3" style="background:#fff;border-color:#BFDBFE">
+                        <h3 class="text-xs font-bold uppercase tracking-wider flex items-center gap-2" style="color:#1E3A5F">
+                            <i data-lucide="map-pin" class="w-4 h-4" style="color:#2563EB"></i> Puntos de Origen / Destino
                         </h3>
                         <div class="flex gap-2">
-                            <input id="lc-new-sucursal" type="text" placeholder="Nuevo punto..."
-                                class="flex-1 bg-brand-black border border-brand-border rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400/60 transition-all-custom placeholder-gray-600"
+                            <input id="lc-new-sucursal" type="text" placeholder="Nuevo punto (ej: Corrientes)..."
+                                class="flex-1 rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-all-custom"
+                                style="background:#EBF4FF;border:1.5px solid #BFDBFE;color:#1E3A5F"
                                 onkeydown="if(event.key==='Enter')lcAddSucursal()">
-                            <button onclick="lcAddSucursal()" class="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-400 px-4 py-2.5 rounded-xl transition-all-custom font-bold text-sm">
+                            <button onclick="lcAddSucursal()" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all-custom" style="background:#2563EB;color:#fff">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
                             </button>
                         </div>
@@ -1082,6 +1087,7 @@
                     </div>
                 </div>
 
+              </div>
             </div><!-- /view-logistica -->
 
             <!-- ── PASTELERÍA ─────────────────────────────────────── -->
@@ -3035,8 +3041,8 @@
             const sel = document.getElementById('app-log-branch-sel');
             if (!sel) return;
             const branches = lcGetBranches();
-            sel.innerHTML = '<option value="">— Seleccionar logística —</option>' +
-                branches.map(b => `<option value="${b.id}" ${b.id === selectedId ? 'selected' : ''}>${b.name} (${b.origin} → ${b.destination})</option>`).join('');
+            sel.innerHTML = '<option value="">— Seleccionar punto logístico —</option>' +
+                branches.map(b => `<option value="${b.id}" ${b.id === selectedId ? 'selected' : ''}>${b.name}</option>`).join('');
         }
 
         function appUserToggleLogBranch() {
@@ -3610,10 +3616,11 @@
         let lcSucursales = [];
         let lcBranches   = [];         // { id, name, origin, destination }
         let _lcFilter          = 'all';
+        let _lcTimeRange       = 'today';  // hoy/week/month/year — usado en KPIs
         let _lcType            = 'ingreso';
         let _lcDrawing         = false;
         let _lcPhotoData       = null;
-        let _lcAdminBranchId   = '';   // admin: which branch is being viewed ('all' or branch id)
+        let _lcAdminBranchId   = '';   // admin: punto logístico seleccionado para ver historial
 
         function lcGetBranches()     { try { return JSON.parse(localStorage.getItem(LC_BRANCH_KEY) || '[]'); } catch { return []; } }
         function lcSaveBranches(arr) { localStorage.setItem(LC_BRANCH_KEY, JSON.stringify(arr)); }
@@ -3630,45 +3637,42 @@
         }
 
         function lcRender() {
-            const session  = getSession();
-            const isAdmin  = !session || session.isAdmin;
+            const session      = getSession();
+            const isAdmin      = !session || session.isAdmin;
             const userBranchId = (!isAdmin && session) ? (session.lcBranchId || '') : '';
             const userBranch   = userBranchId ? lcBranches.find(b => b.id === userBranchId) : null;
 
             // ── Título dinámico ──
             const titleEl = document.getElementById('lc-view-title');
             const subEl   = document.getElementById('lc-view-subtitle');
-            if (titleEl) titleEl.innerHTML = `<i data-lucide="truck" class="w-5 h-5 text-cyan-400 inline-block mr-2"></i>${userBranch ? userBranch.name : 'Logística'}`;
-            if (subEl)   subEl.textContent = userBranch
-                ? `${userBranch.origin} → ${userBranch.destination}`
-                : 'Registrá ingresos y salidas de mercadería entre sucursales.';
+            if (titleEl) titleEl.innerHTML = `<i data-lucide="truck" class="w-5 h-5 inline-block mr-2" style="color:#2563EB"></i><span style="color:#1E3A5F">${userBranch ? userBranch.name : 'Logística'}</span>`;
+            if (subEl)   subEl.textContent = 'Registrá ingresos y salidas de mercadería.';
 
-            // ── Banner de rama ──
+            // ── Banner ──
             const banner = document.getElementById('lc-branch-banner');
             if (banner) {
-                if (isAdmin) {
-                    // Selector de rama para admin
-                    const branchOpts = `<option value="">🔍 Todas las logísticas</option>` +
+                if (isAdmin && lcBranches.length > 0) {
+                    const branchOpts = `<option value="">🔍 Todos los puntos logísticos</option>` +
                         lcBranches.map(b => `<option value="${b.id}" ${_lcAdminBranchId === b.id ? 'selected' : ''}>${b.name}</option>`).join('');
                     banner.innerHTML = `
-                        <div class="bg-brand-card border border-brand-border rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                        <div class="rounded-xl border p-3 flex flex-col sm:flex-row items-start sm:items-center gap-3" style="background:#DBEAFE;border-color:#BFDBFE">
                             <div class="flex items-center gap-2 flex-shrink-0">
-                                <i data-lucide="filter" class="w-4 h-4 text-cyan-400"></i>
-                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ver logística:</span>
+                                <i data-lucide="filter" class="w-4 h-4" style="color:#2563EB"></i>
+                                <span class="text-xs font-bold uppercase tracking-wider" style="color:#1E40AF">Ver punto:</span>
                             </div>
                             <select onchange="_lcAdminBranchId=this.value;lcRender()"
-                                class="flex-1 bg-brand-black border border-brand-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400/60 transition-all-custom">
+                                class="flex-1 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none transition-all-custom"
+                                style="background:#EBF4FF;border:1.5px solid #93C5FD;color:#1E3A5F">
                                 ${branchOpts}
                             </select>
                         </div>`;
-                } else if (userBranch) {
-                    // Info de rama para usuario
+                } else if (!isAdmin && userBranch) {
                     banner.innerHTML = `
-                        <div class="bg-cyan-400/10 border border-cyan-400/30 rounded-xl px-4 py-3 flex items-center gap-3">
-                            <i data-lucide="truck" class="w-5 h-5 text-cyan-400 flex-shrink-0"></i>
+                        <div class="rounded-xl border px-4 py-3 flex items-center gap-3" style="background:#DBEAFE;border-color:#93C5FD">
+                            <i data-lucide="truck" class="w-5 h-5 flex-shrink-0" style="color:#2563EB"></i>
                             <div>
-                                <p class="text-sm font-extrabold text-white">${userBranch.name}</p>
-                                <p class="text-xs text-cyan-400">${userBranch.origin} <span class="text-gray-500 mx-1">→</span> ${userBranch.destination}</p>
+                                <p class="text-sm font-extrabold" style="color:#1E3A5F">${userBranch.name}</p>
+                                <p class="text-xs" style="color:#3B82F6">Punto logístico asignado</p>
                             </div>
                         </div>`;
                 } else {
@@ -3676,7 +3680,7 @@
                 }
             }
 
-            // ── Determinar movimientos a mostrar ──
+            // ── Filtrar movimientos por punto logístico ──
             let baseMovements = [...lcMovements];
             if (isAdmin && _lcAdminBranchId) {
                 baseMovements = baseMovements.filter(m => m.branchId === _lcAdminBranchId);
@@ -3684,62 +3688,101 @@
                 baseMovements = baseMovements.filter(m => m.branchId === userBranchId);
             }
 
-            // ── KPI (sobre movimientos ya filtrados por rama) ──
-            const today = new Date().toDateString();
-            document.getElementById('lc-kpi-ingresos').textContent = baseMovements.filter(m => m.type === 'ingreso').length;
-            document.getElementById('lc-kpi-salidas').textContent  = baseMovements.filter(m => m.type === 'salida').length;
-            document.getElementById('lc-kpi-total').textContent    = baseMovements.length;
-            document.getElementById('lc-kpi-hoy').textContent      = baseMovements.filter(m => {
-                try { return new Date(m.ts).toDateString() === today; } catch(e) { return false; }
-            }).length;
+            // ── Helpers de rango de tiempo ──
+            const now      = new Date();
+            const todayStr = now.toDateString();
+            function lcTsToDate(ts) { try { return new Date(ts); } catch(e) { return new Date(0); } }
+            function lcInRange(m) {
+                const d = lcTsToDate(m.ts);
+                if (_lcTimeRange === 'today') return d.toDateString() === todayStr;
+                if (_lcTimeRange === 'week')  return d >= new Date(Date.now() - 7 * 86400000);
+                if (_lcTimeRange === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                if (_lcTimeRange === 'year')  return d.getFullYear() === now.getFullYear();
+                return true;
+            }
+            const rangeLabel = { today: 'hoy', week: 'esta semana', month: 'este mes', year: 'este año' }[_lcTimeRange] || '';
+            const periodMov  = baseMovements.filter(lcInRange);
 
-            // ── Filtros de historial ──
+            // ── KPIs ──
+            document.getElementById('lc-kpi-ingresos').textContent = periodMov.filter(m => m.type === 'ingreso').length;
+            document.getElementById('lc-kpi-salidas').textContent  = periodMov.filter(m => m.type === 'salida').length;
+            document.getElementById('lc-kpi-total').textContent    = periodMov.length;
+            const ingLabel = document.getElementById('lc-kpi-ing-label');
+            const salLabel = document.getElementById('lc-kpi-sal-label');
+            const totLabel = document.getElementById('lc-kpi-tot-label');
+            if (ingLabel) ingLabel.textContent = rangeLabel;
+            if (salLabel) salLabel.textContent = rangeLabel;
+            if (totLabel) totLabel.textContent = `remitos ${rangeLabel}`;
+
+            // ── Tabs de rango (estilos) ──
+            ['today','week','month','year'].forEach(t => {
+                const btn = document.getElementById('lc-tr-' + t);
+                if (!btn) return;
+                if (t === _lcTimeRange) {
+                    btn.style.background = '#2563EB';
+                    btn.style.color      = '#fff';
+                } else {
+                    btn.style.background = 'transparent';
+                    btn.style.color      = '#3B82F6';
+                }
+            });
+
+            // ── Filtros de historial (estilos) ──
             ['all','today','week','ingreso','salida'].forEach(f => {
                 const btn = document.getElementById('lc-filter-' + f);
                 if (!btn) return;
-                btn.className = f === _lcFilter
-                    ? 'text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom bg-brand-green text-black'
-                    : 'text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom text-gray-400 hover:text-white';
+                if (f === _lcFilter) {
+                    btn.style.background = '#2563EB';
+                    btn.style.color      = '#fff';
+                } else {
+                    btn.style.background = 'transparent';
+                    btn.style.color      = '#5B8EC4';
+                }
             });
 
+            // ── Filtrar historial ──
             const weekAgo = new Date(Date.now() - 7 * 86400000);
             let list = [...baseMovements];
-            if      (_lcFilter === 'today')   list = list.filter(m => { try { return new Date(m.ts).toDateString() === today; } catch(e){ return false; } });
-            else if (_lcFilter === 'week')    list = list.filter(m => { try { return new Date(m.ts) >= weekAgo; }    catch(e){ return true; } });
+            if      (_lcFilter === 'today')   list = list.filter(m => lcTsToDate(m.ts).toDateString() === todayStr);
+            else if (_lcFilter === 'week')    list = list.filter(m => lcTsToDate(m.ts) >= weekAgo);
             else if (_lcFilter === 'ingreso') list = list.filter(m => m.type === 'ingreso');
             else if (_lcFilter === 'salida')  list = list.filter(m => m.type === 'salida');
 
             // ── Historial ──
             const container = document.getElementById('lc-history-list');
             if (list.length === 0) {
-                container.innerHTML = '<p class="text-xs text-gray-500 text-center py-8">Sin movimientos en este período.</p>';
+                container.innerHTML = '<p class="text-xs text-center py-8" style="color:#93C5FD">Sin movimientos en este período.</p>';
             } else {
                 container.innerHTML = list.map(m => {
                     const branch = lcBranches.find(b => b.id === m.branchId);
-                    const branchChip = branch ? `<span class="text-[10px] bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 px-2 py-0.5 rounded-full font-bold">${branch.name}</span>` : '';
+                    const branchChip = branch
+                        ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="background:#DBEAFE;color:#2563EB;border-color:#93C5FD">${branch.name}</span>`
+                        : '';
+                    const isIng = m.type === 'ingreso';
                     return `
-                    <div class="bg-brand-black border border-brand-border rounded-xl overflow-hidden flex items-stretch">
-                        <div class="w-1 flex-shrink-0 ${m.type === 'ingreso' ? 'bg-cyan-400' : 'bg-amber-400'}"></div>
+                    <div class="rounded-xl border overflow-hidden flex items-stretch" style="background:#fff;border-color:#BFDBFE">
+                        <div class="w-1.5 flex-shrink-0" style="background:${isIng ? '#16A34A' : '#EA580C'}"></div>
                         <div class="flex-1 px-4 py-3 min-w-0">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-2 flex-wrap mb-1">
-                                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${m.type === 'ingreso' ? 'bg-cyan-400/20 text-cyan-400' : 'bg-amber-400/20 text-amber-400'}">${m.type}</span>
+                                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full border"
+                                            style="${isIng ? 'background:#DCFCE7;color:#15803D;border-color:#86EFAC' : 'background:#FFEDD5;color:#C2410C;border-color:#FED7AA'}">${m.type}</span>
                                         ${branchChip}
-                                        <span class="text-[10px] text-gray-500 font-mono">${m.ts}</span>
+                                        <span class="text-[10px] font-mono" style="color:#93C5FD">${m.ts}</span>
                                     </div>
-                                    <p class="text-sm font-bold text-white truncate">Remito: ${m.remito}</p>
+                                    <p class="text-sm font-bold truncate" style="color:#1E3A5F">Remito: ${m.remito}</p>
                                     <div class="flex items-center gap-2 mt-1 flex-wrap">
-                                        <span class="text-[10px] bg-brand-card px-2 py-0.5 rounded-lg text-gray-300 border border-brand-border">${m.origen}</span>
-                                        <span class="text-gray-600 text-xs">→</span>
-                                        <span class="text-[10px] bg-brand-card px-2 py-0.5 rounded-lg text-gray-300 border border-brand-border">${m.destino}</span>
+                                        <span class="text-[10px] px-2 py-0.5 rounded-lg border" style="background:#EBF4FF;color:#1E40AF;border-color:#BFDBFE">${m.origen}</span>
+                                        <span class="text-xs" style="color:#93C5FD">→</span>
+                                        <span class="text-[10px] px-2 py-0.5 rounded-lg border" style="background:#EBF4FF;color:#1E40AF;border-color:#BFDBFE">${m.destino}</span>
                                     </div>
-                                    ${m.desc   ? `<p class="text-[10px] text-gray-500 mt-1">${m.desc}</p>` : ''}
-                                    ${m.nombre ? `<p class="text-[10px] text-gray-500 mt-0.5"><i data-lucide="user" class="w-3 h-3 inline mr-1"></i>${m.nombre}</p>` : ''}
-                                    ${m.foto   ? `<div class="mt-2"><img src="${m.foto}" alt="Foto remito" class="h-16 w-auto rounded-lg border border-brand-border object-cover cursor-pointer" onclick="document.getElementById('lc-photo-viewer-img').src='${m.foto}';document.getElementById('lc-photo-viewer').classList.remove('hidden')"></div>` : ''}
-                                    ${m.firma && m.firma !== 'data:,' ? `<div class="mt-2"><img src="${m.firma}" alt="Firma" class="h-10 w-auto rounded border border-brand-border bg-[#0D1520]" title="Firma digital"></div>` : ''}
+                                    ${m.desc   ? `<p class="text-[10px] mt-1" style="color:#5B8EC4">${m.desc}</p>` : ''}
+                                    ${m.nombre ? `<p class="text-[10px] mt-0.5 flex items-center gap-1" style="color:#5B8EC4"><i data-lucide="user" class="w-3 h-3 inline"></i>${m.nombre}</p>` : ''}
+                                    ${m.foto   ? `<div class="mt-2"><img src="${m.foto}" alt="Foto remito" class="h-16 w-auto rounded-lg object-cover cursor-pointer border" style="border-color:#BFDBFE" onclick="document.getElementById('lc-photo-viewer-img').src='${m.foto}';document.getElementById('lc-photo-viewer').classList.remove('hidden')"></div>` : ''}
+                                    ${m.firma && m.firma !== 'data:,' ? `<div class="mt-2"><img src="${m.firma}" alt="Firma" class="h-10 w-auto rounded border" style="border-color:#BFDBFE;background:#EBF4FF" title="Firma digital"></div>` : ''}
                                 </div>
-                                <button onclick="lcDelete('${m.id}')" class="flex-shrink-0 p-1.5 rounded-lg text-gray-600 hover:text-rose-400 hover:bg-rose-400/10 transition-all-custom">
+                                <button onclick="lcDelete('${m.id}')" class="flex-shrink-0 p-1.5 rounded-lg transition-all-custom" style="color:#93C5FD" onmouseover="this.style.color='#EF4444';this.style.background='#FEF2F2'" onmouseout="this.style.color='#93C5FD';this.style.background='transparent'">
                                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                 </button>
                             </div>
@@ -3748,40 +3791,46 @@
                 }).join('');
             }
 
-            // ── Panel admin (gestión de logísticas) ──
+            // ── Panel admin ──
             const adminMgmt = document.getElementById('lc-admin-mgmt');
             if (adminMgmt) adminMgmt.classList.toggle('hidden', !isAdmin);
 
             if (isAdmin) {
-                // Render ramas
                 const branchesEl = document.getElementById('lc-branches-list');
                 if (branchesEl) {
                     branchesEl.innerHTML = lcBranches.length === 0
-                        ? '<p class="text-xs text-gray-600 text-center py-3">Sin logísticas creadas. Creá la primera arriba.</p>'
-                        : lcBranches.map(b => `
-                            <div class="flex items-center justify-between bg-brand-black border border-brand-border rounded-xl px-4 py-3">
+                        ? '<p class="text-xs text-center py-3" style="color:#93C5FD">Sin puntos logísticos creados.</p>'
+                        : lcBranches.map(b => {
+                            const ing = lcMovements.filter(m => m.branchId === b.id && m.type === 'ingreso').length;
+                            const sal = lcMovements.filter(m => m.branchId === b.id && m.type === 'salida').length;
+                            return `
+                            <div class="flex items-center justify-between rounded-xl border px-4 py-3" style="background:#EBF4FF;border-color:#BFDBFE">
                                 <div class="min-w-0">
-                                    <p class="text-sm font-bold text-white">${b.name}</p>
-                                    <p class="text-[11px] text-cyan-400 mt-0.5">${b.origin} <span class="text-gray-600 mx-1">→</span> ${b.destination}</p>
+                                    <p class="text-sm font-bold" style="color:#1E3A5F">${b.name}</p>
+                                    <p class="text-[11px] mt-0.5" style="color:#5B8EC4">
+                                        <span style="color:#15803D">↓ ${ing} ing.</span>
+                                        <span class="mx-2" style="color:#BFDBFE">|</span>
+                                        <span style="color:#C2410C">↑ ${sal} sal.</span>
+                                    </p>
                                 </div>
-                                <button onclick="lcDeleteBranch('${b.id}')" class="text-gray-600 hover:text-rose-400 hover:bg-rose-400/10 p-1.5 rounded-lg transition-all-custom flex-shrink-0 ml-2">
+                                <button onclick="lcDeleteBranch('${b.id}')" class="p-1.5 rounded-lg transition-all-custom flex-shrink-0 ml-2" style="color:#93C5FD" onmouseover="this.style.color='#EF4444';this.style.background='#FEF2F2'" onmouseout="this.style.color='#93C5FD';this.style.background='transparent'">
                                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                 </button>
-                            </div>`).join('');
+                            </div>`;
+                        }).join('');
                 }
 
-                // Render puntos
                 const sucEl = document.getElementById('lc-sucursales-list');
                 if (sucEl) {
                     sucEl.innerHTML = lcSucursales.length === 0
-                        ? '<p class="text-xs text-gray-600 text-center py-3">Sin puntos configurados.</p>'
+                        ? '<p class="text-xs text-center py-3" style="color:#93C5FD">Sin puntos configurados.</p>'
                         : lcSucursales.map((s, i) => `
-                            <div class="flex items-center justify-between bg-brand-black border border-brand-border rounded-xl px-4 py-2.5">
+                            <div class="flex items-center justify-between rounded-xl border px-4 py-2.5" style="background:#EBF4FF;border-color:#BFDBFE">
                                 <div class="flex items-center gap-2">
-                                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-cyan-400 flex-shrink-0"></i>
-                                    <span class="text-sm font-semibold text-white">${s}</span>
+                                    <i data-lucide="map-pin" class="w-3.5 h-3.5 flex-shrink-0" style="color:#2563EB"></i>
+                                    <span class="text-sm font-semibold" style="color:#1E3A5F">${s}</span>
                                 </div>
-                                <button onclick="lcDeleteSucursal(${i})" class="text-gray-600 hover:text-rose-400 hover:bg-rose-400/10 p-1 rounded-lg transition-all-custom">
+                                <button onclick="lcDeleteSucursal(${i})" class="p-1 rounded-lg transition-all-custom" style="color:#93C5FD" onmouseover="this.style.color='#EF4444';this.style.background='#FEF2F2'" onmouseout="this.style.color='#93C5FD';this.style.background='transparent'">
                                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                 </button>
                             </div>`).join('');
@@ -3791,7 +3840,8 @@
             safeCreateIcons();
         }
 
-        function lcSetFilter(f) { _lcFilter = f; lcRender(); }
+        function lcSetFilter(f)    { _lcFilter = f;    lcRender(); }
+        function lcSetTimeRange(t) { _lcTimeRange = t; lcRender(); }
 
         function lcOpenModal(type) {
             _lcType = type;
@@ -3805,27 +3855,13 @@
             submitBtn.className = `w-full py-3.5 text-sm font-extrabold rounded-xl transition-all duration-200 ${isIngreso ? 'bg-cyan-500 hover:bg-cyan-600' : 'bg-amber-500 hover:bg-amber-600'} text-white`;
             submitBtn.textContent = isIngreso ? 'Guardar Ingreso' : 'Guardar Salida';
 
-            const session  = getSession();
-            const isAdmin  = !session || session.isAdmin;
-            const userBranchId = (!isAdmin && session) ? (session.lcBranchId || '') : '';
-            const userBranch   = userBranchId ? lcBranches.find(b => b.id === userBranchId) : null;
-
             const opts = '<option value="">— Seleccionar —</option>' + lcSucursales.map(s => `<option value="${s}">${s}</option>`).join('');
             const origenEl  = document.getElementById('lc-field-origen');
             const destinoEl = document.getElementById('lc-field-destino');
             origenEl.innerHTML  = opts;
             destinoEl.innerHTML = opts;
-
-            // Pre-seleccionar origen y destino de la rama del usuario
-            if (userBranch) {
-                origenEl.value  = userBranch.origin;
-                destinoEl.value = userBranch.destination;
-                origenEl.disabled  = true;
-                destinoEl.disabled = true;
-            } else {
-                origenEl.disabled  = false;
-                destinoEl.disabled = false;
-            }
+            origenEl.disabled   = false;
+            destinoEl.disabled  = false;
 
             document.getElementById('lc-field-fecha').value = new Date().toISOString().split('T')[0];
             ['lc-field-remito','lc-field-desc','lc-field-nombre'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
@@ -3905,24 +3941,16 @@
 
         function lcAddBranch() {
             const nameEl = document.getElementById('lc-new-branch-name');
-            const origEl = document.getElementById('lc-new-branch-origin');
-            const destEl = document.getElementById('lc-new-branch-dest');
             const name   = nameEl ? nameEl.value.trim() : '';
-            const origin = origEl ? origEl.value.trim() : '';
-            const dest   = destEl ? destEl.value.trim() : '';
-            if (!name)   { showToast('Ingresá el nombre de la logística', true); return; }
-            if (!origin) { showToast('Ingresá el punto de origen', true); return; }
-            if (!dest)   { showToast('Ingresá el punto de destino', true); return; }
+            if (!name) { showToast('Ingresá el nombre del punto logístico', true); return; }
             if (lcBranches.some(b => b.name.toLowerCase() === name.toLowerCase())) {
-                showToast('Ya existe una logística con ese nombre', true); return;
+                showToast('Ya existe un punto logístico con ese nombre', true); return;
             }
-            lcBranches.push({ id: 'br_' + Date.now(), name, origin, destination: dest });
+            lcBranches.push({ id: 'br_' + Date.now(), name });
             lcSaveBranches(lcBranches);
             if (nameEl) nameEl.value = '';
-            if (origEl) origEl.value = '';
-            if (destEl) destEl.value = '';
             lcRender();
-            showToast('Logística creada correctamente');
+            showToast('Punto logístico creado');
         }
 
         function lcDeleteBranch(id) {
