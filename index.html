@@ -1036,7 +1036,8 @@
 
                 <!-- Historial en dos columnas -->
                 <div class="rounded-2xl border p-4 space-y-3" style="background:#fff;border-color:#BFDBFE">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b" style="border-color:#DBEAFE">
+                    <!-- Fila 1: título + filtros rápidos -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3" >
                         <h3 class="text-xs font-bold uppercase tracking-wider flex items-center gap-2" style="color:#1E3A5F">
                             <i data-lucide="list" class="w-4 h-4" style="color:#2563EB"></i> Historial de Remitos
                         </h3>
@@ -1045,6 +1046,47 @@
                             <button onclick="lcSetFilter('today')" id="lc-filter-today" class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Hoy</button>
                             <button onclick="lcSetFilter('week')"  id="lc-filter-week"  class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Semana</button>
                             <button onclick="lcSetFilter('month')" id="lc-filter-month" class="text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all-custom">Mes</button>
+                        </div>
+                    </div>
+                    <!-- Fila 2: buscador + rango de fechas -->
+                    <div class="flex flex-col sm:flex-row gap-2 pb-3 border-b" style="border-color:#DBEAFE">
+                        <!-- Buscador por N° remito -->
+                        <div class="relative flex-1">
+                            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#93C5FD"></i>
+                            <input id="lc-search-input" type="text" placeholder="Buscar N° de remito..."
+                                oninput="_lcSearch=this.value.trim();lcRender()"
+                                class="w-full pl-9 pr-8 py-2 rounded-xl text-sm focus:outline-none transition-all-custom"
+                                style="background:#EBF4FF;border:1.5px solid #BFDBFE;color:#1E3A5F"
+                                autocomplete="off" autocorrect="off" spellcheck="false">
+                            <button id="lc-search-clear" onclick="_lcSearch='';document.getElementById('lc-search-input').value='';lcRender()"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 hidden p-0.5 rounded-full transition-all-custom"
+                                style="color:#93C5FD" onmouseover="this.style.color='#2563EB'" onmouseout="this.style.color='#93C5FD'">
+                                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                        <!-- Rango de fechas -->
+                        <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                            <div class="relative flex items-center" style="min-width:130px">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5 absolute left-2.5 pointer-events-none" style="color:#93C5FD"></i>
+                                <input id="lc-date-from" type="date"
+                                    onchange="_lcDateFrom=this.value;lcRender()"
+                                    class="w-full pl-8 pr-2 py-2 rounded-xl text-xs focus:outline-none transition-all-custom"
+                                    style="background:#EBF4FF;border:1.5px solid #BFDBFE;color:#1E3A5F"
+                                    title="Desde">
+                            </div>
+                            <span class="text-xs font-bold flex-shrink-0" style="color:#93C5FD">→</span>
+                            <div class="relative flex items-center" style="min-width:130px">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5 absolute left-2.5 pointer-events-none" style="color:#93C5FD"></i>
+                                <input id="lc-date-to" type="date"
+                                    onchange="_lcDateTo=this.value;lcRender()"
+                                    class="w-full pl-8 pr-2 py-2 rounded-xl text-xs focus:outline-none transition-all-custom"
+                                    style="background:#EBF4FF;border:1.5px solid #BFDBFE;color:#1E3A5F"
+                                    title="Hasta">
+                            </div>
+                            <!-- Botón limpiar filtros de fecha/búsqueda -->
+                            <button id="lc-clear-search-btn" onclick="lcClearHistSearch()" class="flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold border transition-all-custom hidden" style="background:#FEF2F2;border-color:#FECACA;color:#EF4444">
+                                <i data-lucide="x-circle" class="w-3.5 h-3.5 inline mr-1"></i>Limpiar
+                            </button>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -3740,6 +3782,9 @@
         let lcBranches   = [];         // { id, name, origin, destination }
         let _lcFilter          = 'all';
         let _lcTimeRange       = 'today';  // hoy/week/month/year — usado en KPIs
+        let _lcSearch          = '';       // búsqueda por N° remito
+        let _lcDateFrom        = '';       // filtro fecha desde
+        let _lcDateTo          = '';       // filtro fecha hasta
         let _lcType            = 'ingreso';
         let _lcDrawing         = false;
         let _lcPhotoData       = null;
@@ -3871,6 +3916,22 @@
             else if (_lcFilter === 'week')  list = list.filter(m => lcTsToDate(m.ts) >= weekAgo);
             else if (_lcFilter === 'month') list = list.filter(m => lcTsToDate(m.ts) >= monthAgo);
 
+            // Búsqueda por N° remito
+            if (_lcSearch) {
+                const q = _lcSearch.toLowerCase();
+                list = list.filter(m => (m.remito || '').toLowerCase().includes(q));
+            }
+            // Rango de fechas (usa campo fecha YYYY-MM-DD guardado en m.fecha)
+            if (_lcDateFrom) list = list.filter(m => (m.fecha || '') >= _lcDateFrom);
+            if (_lcDateTo)   list = list.filter(m => (m.fecha || '') <= _lcDateTo);
+
+            // Mostrar/ocultar botón "Limpiar" y X del buscador
+            const hasExtra = _lcSearch || _lcDateFrom || _lcDateTo;
+            const clearBtn = document.getElementById('lc-clear-search-btn');
+            if (clearBtn) clearBtn.classList.toggle('hidden', !hasExtra);
+            const searchClear = document.getElementById('lc-search-clear');
+            if (searchClear) searchClear.classList.toggle('hidden', !_lcSearch);
+
             // ── Función helper para renderizar una card de remito ──
             const session2 = getSession();
             const isAdmin2 = !session2 || session2.isAdmin;
@@ -3978,6 +4039,19 @@
 
         function lcSetFilter(f)    { _lcFilter = f;    lcRender(); }
         function lcSetTimeRange(t) { _lcTimeRange = t; lcRender(); }
+
+        function lcClearHistSearch() {
+            _lcSearch   = '';
+            _lcDateFrom = '';
+            _lcDateTo   = '';
+            const si = document.getElementById('lc-search-input');
+            const df = document.getElementById('lc-date-from');
+            const dt = document.getElementById('lc-date-to');
+            if (si) si.value = '';
+            if (df) df.value = '';
+            if (dt) dt.value = '';
+            lcRender();
+        }
 
         // ── Modal detalle de remito ──────────────────────────────────
         let _lcDetailId = null;
